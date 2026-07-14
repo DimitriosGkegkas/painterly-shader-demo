@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react'
+import { Color } from 'three'
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { PostProcessing } from '../Effects/PostProcessing'
@@ -21,6 +22,10 @@ function ExperiencePage(props: ExperiencePageProps) {
             <PostProcessing />
             <OrbitControls makeDefault enablePan enableZoom />
             <Perf position='top-left' />
+            <color attach='background' args={[new Color(1, 1, 1)]} />
+
+            {/* <ambientLight intensity={10} /> */}
+            {/* <directionalLight position={[-300, 50, -200]} intensity={2} color={new Color(0, 0, 1)} /> */}
         </Canvas>
     )
 }
