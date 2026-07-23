@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
-import OpacityMaterial from '../Effects/Materials/OpacityMaterial'
+import OpacityMaterial from '../Effects/material-shaders/OpacityMaterial'
 
 // Helper: Applies vertex colors to a geometry.
 function applyVertexColors(geometry, color) {
@@ -15,7 +15,7 @@ function applyVertexColors(geometry, color) {
 }
 
 // Helper: Clones, colors, and merges geometries from a list of node keys.
-function mergeAndColorGeometries(nodes, nodeKeys, colorMap) {
+function mergeAndColorGeometries(nodes, nodeKeys, colorMap, material) {
     try {
         const geometries = nodeKeys.map((key, index) => {
             const geo = nodes[key].geometry.clone()
@@ -26,10 +26,11 @@ function mergeAndColorGeometries(nodes, nodeKeys, colorMap) {
         const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries, true)
         return new THREE.Mesh(
             mergedGeometry,
-            new OpacityMaterial({
-                vertexColors: true,
-                side: THREE.DoubleSide,
-            })
+            material ??
+                new OpacityMaterial({
+                    vertexColors: true,
+                    side: THREE.DoubleSide,
+                })
         )
     } catch (e) {
         console.log(nodeKeys)

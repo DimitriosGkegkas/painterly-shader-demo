@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import { Color, Mesh } from 'three'
-import { CartoonBlobMaterial } from '../Effects/Materials/CartoonBlobMaterial'
+import { CartoonBlobMaterial } from '../Effects/material-shaders/CartoonBlobMaterial'
 
 export default function CartoonBlob(props: JSX.IntrinsicElements['group']) {
     const meshRef = useRef<Mesh>(null)

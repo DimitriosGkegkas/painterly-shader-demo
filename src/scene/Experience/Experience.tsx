@@ -1,14 +1,14 @@
 import type { ComponentProps } from 'react'
 import { Color } from 'three'
-import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { PostProcessing } from '../Effects/PostProcessing'
+import { PostProcessing } from '../Effects/postprocessing/PostProcessing'
 import Map from '../Map'
 import { Perf } from 'r3f-perf'
+import ScrollCameraController from './controllers/ScrollCameraController'
 
-type ExperiencePageProps = Omit<ComponentProps<typeof Canvas>, 'children'>
+type ExperienceProps = Omit<ComponentProps<typeof Canvas>, 'children'>
 
-function ExperiencePage(props: ExperiencePageProps) {
+function Experience(props: ExperienceProps) {
     return (
         <Canvas
             {...props}
@@ -19,15 +19,14 @@ function ExperiencePage(props: ExperiencePageProps) {
             gl={{ antialias: true }}
         >
             <Map />
+            <ScrollCameraController />
+            <ambientLight intensity={0.5} />
+            <hemisphereLight args={[new Color('#fff7e8'), new Color('#7ea0b8'), 1.1]} />
+            <directionalLight position={[8, 12, 6]} intensity={1.8} color={new Color('#fff1d6')} />
             <PostProcessing />
-            <OrbitControls makeDefault enablePan enableZoom />
             <Perf position='top-left' />
-            <color attach='background' args={[new Color(1, 1, 1)]} />
-
-            {/* <ambientLight intensity={10} /> */}
-            {/* <directionalLight position={[-300, 50, -200]} intensity={2} color={new Color(0, 0, 1)} /> */}
         </Canvas>
     )
 }
 
-export default ExperiencePage
+export default Experience

@@ -1,21 +1,25 @@
 import React, { Suspense } from 'react'
-import MapBase from './Map_Base'
-import Monuments, { Instances as MonumentsInstances } from './Monuments'
-import Buildings, { Instances as BuildingsInstances } from './Buildings'
+import { useControls } from 'leva'
+import MetohologioScene from './MetohologioScene'
+import MetohologioSceneV2 from './MetohologioSceneV2'
 import CartoonBlob from './CartoonBlob'
 
 const Map = () => {
+    const { model } = useControls('Scene', {
+        model: {
+            value: 'v1',
+            options: {
+                'Metohologio v1': 'v1',
+                'Metohologio v2': 'v2',
+            },
+        },
+    })
+
     return (
         <Suspense fallback={null}>
-            <group name='map' position={[0, -0.5, 0]} rotation={[0, 0.8, 0]}>
-                <MapBase />
-                <MonumentsInstances>
-                    <Monuments />
-                </MonumentsInstances>
-                <BuildingsInstances>
-                    <Buildings />
-                </BuildingsInstances>
-                <CartoonBlob />
+            <CartoonBlob />
+            <group name='map' >
+                {model === 'v1' ? <MetohologioScene /> : <MetohologioSceneV2 />}
             </group>
         </Suspense >
     )
