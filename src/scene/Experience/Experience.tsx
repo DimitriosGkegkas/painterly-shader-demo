@@ -17,12 +17,43 @@ function Experience(props: ExperienceProps) {
             resize={{ scroll: false }}
             dpr={[1, 2]}
             gl={{ antialias: true }}
+            shadows={true}
         >
+             <color attach="background" args={[new Color(0,0,1)]} />
             <Map />
             <ScrollCameraController />
-            <ambientLight intensity={0.5} />
-            <hemisphereLight args={[new Color('#fff7e8'), new Color('#7ea0b8'), 1.1]} />
-            <directionalLight position={[8, 12, 6]} intensity={1.8} color={new Color('#fff1d6')} />
+            <ambientLight intensity={10} />
+            {/* <hemisphereLight args={[new Color('#fff7e8'), new Color('#7ea0b8'), 1.1]} /> */}
+            <directionalLight
+                position={[8, 12, 6]}
+                intensity={10}
+                color={new Color(1.0, 1.0, 1.0)}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+                shadow-camera-near={0.5}
+                shadow-camera-far={50}
+                shadow-camera-left={-20}
+                shadow-camera-right={20}
+                shadow-camera-top={20}
+                shadow-camera-bottom={-20}
+                shadow-bias={-0.0001}
+            />
+            <directionalLight
+                position={[-8, 12, -6]}
+                intensity={10}
+                color={new Color(1.0, 1.0, 1.0)}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+                shadow-camera-near={0.5}
+                shadow-camera-far={50}
+                shadow-camera-left={-20}
+                shadow-camera-right={20}
+                shadow-camera-top={20}
+                shadow-camera-bottom={-20}
+                shadow-bias={-0.0001}
+            />
             <PostProcessing />
             <Perf position='top-left' />
         </Canvas>

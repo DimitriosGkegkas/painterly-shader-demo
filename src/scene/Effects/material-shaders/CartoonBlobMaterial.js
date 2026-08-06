@@ -47,29 +47,58 @@ float fbm3(vec3 p) {
 
 class CartoonBlobMaterial extends MeshStandardMaterial {
     constructor(options = {}) {
+        const baseTintColor = options.baseTintColor ?? new Color(0.55, 0.72, 1.0)
+        const outlineColor = options.outlineColor ?? new Color(0.02, 0.95, 0.82)
+        const shadeColor = options.shadeColor ?? new Color(0.08, 0.12, 0.22)
+        const litColor = options.litColor ?? new Color(0.62, 0.84, 1.0)
+        const roughness = options.roughness ?? 0.85
+        const metalness = options.metalness ?? 0.05
+        const blobAmount = options.blobAmount ?? 0.22
+        const blobScale = options.blobScale ?? 1.35
+        const blobSpeed = options.blobSpeed ?? 0.55
+        const bandCount = options.bandCount ?? 4
+        const edgeStart = options.edgeStart ?? 0.28
+        const edgeEnd = options.edgeEnd ?? 0.58
+        const edgeNoiseScale = options.edgeNoiseScale ?? 1.15
+        const edgeNoiseStrength = options.edgeNoiseStrength ?? 0.09
+        const materialOptions = { ...options }
+
+        delete materialOptions.baseTintColor
+        delete materialOptions.outlineColor
+        delete materialOptions.shadeColor
+        delete materialOptions.litColor
+        delete materialOptions.blobAmount
+        delete materialOptions.blobScale
+        delete materialOptions.blobSpeed
+        delete materialOptions.bandCount
+        delete materialOptions.edgeStart
+        delete materialOptions.edgeEnd
+        delete materialOptions.edgeNoiseScale
+        delete materialOptions.edgeNoiseStrength
+
         super({
-            color: options.color ?? new Color(0.55, 0.72, 1.0),
-            roughness: options.roughness ?? 0.85,
-            metalness: options.metalness ?? 0.05,
-            ...options,
+            ...materialOptions,
+            color: baseTintColor,
+            roughness,
+            metalness,
         })
 
         this.uniforms = {
             time: { value: 0 },
-            blobAmount: { value: options.blobAmount ?? 0.22 },
-            blobScale: { value: options.blobScale ?? 1.35 },
-            blobSpeed: { value: options.blobSpeed ?? 0.55 },
-            edgeColor: { value: options.edgeColor ?? new Color(0.02, 0.95, 0.82) },
-            shadowColor: { value: options.shadowColor ?? new Color(0.08, 0.12, 0.22) },
-            lightColor: { value: options.lightColor ?? new Color(0.62, 0.84, 1.0) },
-            bandCount: { value: options.bandCount ?? 4 },
-            edgeStart: { value: options.edgeStart ?? 0.28 },
-            edgeEnd: { value: options.edgeEnd ?? 0.58 },
-            edgeNoiseScale: { value: options.edgeNoiseScale ?? 1.15 },
-            edgeNoiseStrength: { value: options.edgeNoiseStrength ?? 0.09 },
+            blobAmount: { value: blobAmount },
+            blobScale: { value: blobScale },
+            blobSpeed: { value: blobSpeed },
+            outlineColor: { value: outlineColor },
+            shadeColor: { value: shadeColor },
+            litColor: { value: litColor },
+            bandCount: { value: bandCount },
+            edgeStart: { value: edgeStart },
+            edgeEnd: { value: edgeEnd },
+            edgeNoiseScale: { value: edgeNoiseScale },
+            edgeNoiseStrength: { value: edgeNoiseStrength },
         }
 
-        this.customProgramCacheKey = () => 'CartoonBlobMaterial_v1'
+        this.customProgramCacheKey = () => 'CartoonBlobMaterial_v2'
 
         this.onBeforeCompile = (shader) => {
             for (const uniformName of Object.keys(this.uniforms)) {
@@ -104,9 +133,9 @@ vBlobWorldNormal = normalize(mat3(modelMatrix) * normal);`
                 '#include <common>',
                 `#include <common>
 uniform float time;
-uniform vec3 edgeColor;
-uniform vec3 shadowColor;
-uniform vec3 lightColor;
+uniform vec3 outlineColor;
+uniform vec3 shadeColor;
+uniform vec3 litColor;
 uniform float bandCount;
 uniform float edgeStart;
 uniform float edgeEnd;
@@ -138,10 +167,10 @@ float tone = floor(lightStrength * levels) / (levels - 1.0);
 tone = clamp(tone, 0.0, 1.0);
 
 float interiorNoise = mix(0.9, 1.08, fbm3(vBlobWorldPosition * 0.65 + vec3(time * 0.12)));
-vec3 toonBase = mix(shadowColor, lightColor, tone);
+vec3 toonBase = mix(shadeColor, litColor, tone);
 toonBase = mix(toonBase, gl_FragColor.rgb, 0.25);
 toonBase *= interiorNoise;
-gl_FragColor.rgb = mix(toonBase, edgeColor, edgeMask);
+gl_FragColor.rgb = mix(toonBase, outlineColor, edgeMask);
 gl_FragColor.rgb += (vBlobNoise - 0.5) * 0.04;`
             )
         }

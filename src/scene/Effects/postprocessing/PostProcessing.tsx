@@ -17,13 +17,34 @@ type EffectMode = 'none' | 'draw' | 'pencilLines'
 const rgbToCssColor = (r: number, g: number, b: number) =>
     `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`
 
+const DRAW_DEFAULTS = {
+    thickness: 0.6,
+    scale: 2,
+    noisiness: 0.002,
+    fillColor: 0,
+    inkColor: rgbToCssColor(48, 32, 10),
+    showHatch: true,
+    useNoiseTexture: true,
+    useSketchTexture: true,
+}
+
+const PENCIL_DEFAULTS = {
+    thickness: 1,
+    contour: 1,
+    scale: 0.55,
+    noisiness: 0.004,
+    inkColor: rgbToCssColor(82, 31, 51),
+    useNoiseTexture: true,
+    useSketchTexture: true,
+}
+
 const PostProcessing = React.memo(
     ({ enabled = true, renderPriority = 1, multisampling = 8, frameBufferType = HalfFloatType }: PostProcessingProps) => {
         const { gl, scene, camera, size } = useThree()
         const effectPath = 'Post Processing.effect'
         const controls = useControls('Post Processing', {
             effect: {
-                value: 'none',
+                value: 'draw',
                 options: {
                     none: 'none',
                     draw: 'draw',
@@ -42,162 +63,9 @@ const PostProcessing = React.memo(
                     'green + blue': 'greenBlue',
                 },
             },
-            drawThickness: {
-                value: 0.6,
-                min: 0.1,
-                max: 4,
-                step: 0.01,
-                label: 'Thickness',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawScale: {
-                value: 2,
-                min: 0.25,
-                max: 6,
-                step: 0.01,
-                label: 'Scale',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawNoisiness: {
-                value: 0.002,
-                min: 0,
-                max: 0.03,
-                step: 0.0001,
-                label: 'Noisiness',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawFillColor: {
-                value: 0,
-                min: 0,
-                max: 1,
-                step: 0.01,
-                label: 'Color Fill',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawInkR: {
-                value: 48,
-                min: 0,
-                max: 255,
-                step: 1,
-                label: 'Ink R',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawInkG: {
-                value: 32,
-                min: 0,
-                max: 255,
-                step: 1,
-                label: 'Ink G',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawInkB: {
-                value: 10,
-                min: 0,
-                max: 255,
-                step: 1,
-                label: 'Ink B',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawShowHatch: {
-                value: true,
-                label: 'Show Hatch',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawShowEdge: {
-                value: true,
-                label: 'Show Edge',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawShowColor: {
-                value: true,
-                label: 'Show Color',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawUseNoiseTexture: {
-                value: true,
-                label: 'Noise Texture',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawUseSketchTexture: {
-                value: true,
-                label: 'Sketch Texture',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            drawUsePaperTexture: {
+            usePaperTexture: {
                 value: true,
                 label: 'Paper Texture',
-                render: (get) => get(effectPath) === 'draw',
-            },
-            pencilThickness: {
-                value: 1,
-                min: 0.1,
-                max: 4,
-                step: 0.01,
-                label: 'Thickness',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilContour: {
-                value: 1,
-                min: 0.25,
-                max: 5,
-                step: 0.01,
-                label: 'Contour',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilScale: {
-                value: 0.55,
-                min: 0.1,
-                max: 2,
-                step: 0.01,
-                label: 'Scale',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilNoisiness: {
-                value: 0.004,
-                min: 0,
-                max: 0.03,
-                step: 0.0001,
-                label: 'Noisiness',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilInkR: {
-                value: 82,
-                min: 0,
-                max: 255,
-                step: 1,
-                label: 'Ink R',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilInkG: {
-                value: 31,
-                min: 0,
-                max: 255,
-                step: 1,
-                label: 'Ink G',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilInkB: {
-                value: 51,
-                min: 0,
-                max: 255,
-                step: 1,
-                label: 'Ink B',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilUseNoiseTexture: {
-                value: true,
-                label: 'Noise Texture',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilUseSketchTexture: {
-                value: true,
-                label: 'Sketch Texture',
-                render: (get) => get(effectPath) === 'pencilLines',
-            },
-            pencilUsePaperTexture: {
-                value: true,
-                label: 'Paper Texture',
-                render: (get) => get(effectPath) === 'pencilLines',
             },
         })
 
@@ -237,54 +105,17 @@ const PostProcessing = React.memo(
 
         useEffect(() => {
             composer.setEffectParams('draw', {
-                thickness: controls.drawThickness,
-                scale: controls.drawScale,
-                noisiness: controls.drawNoisiness,
-                fillColor: controls.drawFillColor,
-                inkColor: rgbToCssColor(controls.drawInkR, controls.drawInkG, controls.drawInkB),
-                showHatch: controls.drawShowHatch,
-                showEdge: controls.drawShowEdge,
-                showColor: controls.drawShowColor,
-                useNoiseTexture: controls.drawUseNoiseTexture,
-                useSketchTexture: controls.drawUseSketchTexture,
-                usePaperTexture: controls.drawUsePaperTexture,
+                ...DRAW_DEFAULTS,
+                usePaperTexture: controls.usePaperTexture,
             })
 
             composer.setEffectParams('pencilLines', {
-                thickness: controls.pencilThickness,
-                contour: controls.pencilContour,
-                scale: controls.pencilScale,
-                noisiness: controls.pencilNoisiness,
-                inkColor: rgbToCssColor(controls.pencilInkR, controls.pencilInkG, controls.pencilInkB),
-                useNoiseTexture: controls.pencilUseNoiseTexture,
-                useSketchTexture: controls.pencilUseSketchTexture,
-                usePaperTexture: controls.pencilUsePaperTexture,
+                ...PENCIL_DEFAULTS,
+                usePaperTexture: controls.usePaperTexture,
             })
         }, [
             composer,
-            controls.drawFillColor,
-            controls.drawInkB,
-            controls.drawInkG,
-            controls.drawInkR,
-            controls.drawNoisiness,
-            controls.drawScale,
-            controls.drawShowColor,
-            controls.drawShowEdge,
-            controls.drawShowHatch,
-            controls.drawThickness,
-            controls.drawUseNoiseTexture,
-            controls.drawUsePaperTexture,
-            controls.drawUseSketchTexture,
-            controls.pencilContour,
-            controls.pencilInkB,
-            controls.pencilInkG,
-            controls.pencilInkR,
-            controls.pencilNoisiness,
-            controls.pencilScale,
-            controls.pencilThickness,
-            controls.pencilUseNoiseTexture,
-            controls.pencilUsePaperTexture,
-            controls.pencilUseSketchTexture,
+            controls.usePaperTexture,
         ])
 
         useEffect(() => {

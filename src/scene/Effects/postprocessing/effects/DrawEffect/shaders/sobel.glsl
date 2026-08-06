@@ -27,7 +27,8 @@ float sobelFloatSmooth(
         for (int j = -1; j <= 1; ++j) {
             vec2 sampleUv = uv + vec2(float(i) * x, float(j) * y);
             vec3 blurred = blur3x3(src, sampleUv, offset);
-            float lum = dot(blurred, vec3(0.299, 0.587, 0.114));
+            // float lum = dot(blurred, vec3(0.299, 0.587, 0.114));
+            float lum = blurred.r; // Use the red channel for edge detection
 
             float hWeight = float(i) * (j == 0 ? 2.0 : 1.0);
             float vWeight = float(j) * (i == 0 ? 2.0 : 1.0);

@@ -1,5 +1,5 @@
 uniform sampler2D noiseTexture;
-uniform sampler2D boarderNoiseTexture;
+uniform sampler2D borderNoiseTexture;
 uniform bool useNoiseTexture;
 uniform bool useSketchTexture;
 
@@ -23,7 +23,7 @@ float simplexBoarder(in vec3 v) {
     // Sample the noise texture at the given position (v.xy / 32.0)
     // The noise texture provides pseudo-random noise values
     // The result is scaled to the range [-1.0, 1.0]
-    float luminance = luma(texture(boarderNoiseTexture, v.xy / 32.0).rgb);
+    float luminance = luma(texture(borderNoiseTexture, v.xy / 32.0).rgb);
     return 2.0 * luminance - 1.0;
 }
 

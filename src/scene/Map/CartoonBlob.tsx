@@ -8,10 +8,10 @@ export default function CartoonBlob(props: JSX.IntrinsicElements['group']) {
     const material = useMemo(
         () =>
             new CartoonBlobMaterial({
-                color: new Color(0.56, 0.75, 1.0),
-                edgeColor: new Color(0.02, 0.95, 0.82),
-                shadowColor: new Color(0.03, 0.08, 0.18),
-                lightColor: new Color(0.48, 0.86, 1.0),
+                baseTintColor: new Color(0.56, 0.75, 1.0),
+                outlineColor: new Color(0.02, 0.95, 0.82),
+                shadeColor: new Color(0.03, 0.08, 0.18),
+                litColor: new Color(0.48, 0.86, 1.0),
                 blobAmount: 0.18,
                 blobScale: 1.8,
                 edgeNoiseStrength: 0.12,
