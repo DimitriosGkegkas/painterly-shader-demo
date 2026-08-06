@@ -10,8 +10,9 @@ import { useGLTF, useAnimations, useTexture } from '@react-three/drei'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
 import { CartoonBlobFiberStaticMaterial } from '../Effects/material-shaders/CartoonBlobFiberStaticMaterial'
+import { assetUrl } from '../../utils/assetUrl.js'
 
-const modelUrl = '/assets/model/Map/Metohologio_example_scene_v2-transformed.glb'
+const modelUrl = assetUrl('assets/model/Map/Metohologio_example_scene_v2-transformed.glb')
 
 type ActionName = 'Action.001' | 'Action.002' | 'Armature.004Action.002' | 'Armature.004Action.003' | 'Armature.004|Armature.002Action.001' | 'Armature.004|Armature.004Action.001' | 'Armature.005|Armature|3030509026704_TempMotion|3030509026704_Te' | 'Armature|3030509026704_TempMotion|3030509026704_TempMotion.002' | 'Armature|3030509026704_TempMotion|3030509026704_TempMotion.003' | 'Action.003' | 'Armature.004Action' | 'Armature.004Action.001'
 
@@ -55,7 +56,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone) as GLTFResult
   const { actions } = useAnimations(animations, group)
-  const wallTexture = useTexture('/texture_atlas_no_red.png')
+  const wallTexture = useTexture(assetUrl('texture_atlas_no_red.png'))
   
 
   React.useEffect(() => {
@@ -143,11 +144,11 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   return (
     <group castShadow receiveShadow ref={group} {...props} dispose={null}>
       <group castShadow receiveShadow name="Scene">
-        <group castShadow receiveShadow name="Small_Sheep_Armature" position={[3.301, -0.1, 3.002]} rotation={[0, -0.625, 0]} scale={0.637} castShadow receiveShadow>
+        <group castShadow receiveShadow name="Small_Sheep_Armature" position={[3.301, -0.1, 3.002]} rotation={[0, -0.625, 0]} scale={0.637}>
           <primitive object={nodes.RL_BoneRoot} />
           <skinnedMesh castShadow receiveShadow name="Small_Sheep" geometry={nodes.Small_Sheep.geometry} material={nodes.Small_Sheep.material} skeleton={nodes.Small_Sheep.skeleton} />
         </group>
-        <group castShadow receiveShadow name="Large_Sheep_Armature" position={[3.36, -0.037, 3.251]} rotation={[0, -1.415, 0]} scale={1.13} castShadow receiveShadow>
+        <group castShadow receiveShadow name="Large_Sheep_Armature" position={[3.36, -0.037, 3.251]} rotation={[0, -1.415, 0]} scale={1.13}>
           <primitive object={nodes.RL_BoneRoot_1} />
           <skinnedMesh castShadow receiveShadow name="Large_Sheep" geometry={nodes.Large_Sheep.geometry} material={nodes.Large_Sheep.material} skeleton={nodes.Large_Sheep.skeleton} />
         </group>
@@ -177,8 +178,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
         </group>
         <mesh name="Wall_Plane" geometry={nodes.Wall_Plane.geometry} material={wallMaterial} position={[8.543, 1.02, -8.262]} rotation={[0, 0, -Math.PI / 2]} />
         <mesh name="Stone001" geometry={nodes.Stone001.geometry} material={nodes.Stone001.material} position={[0.232, 0.249, -0.185]} scale={1.389} />
-        <mesh name="Ground" geometry={nodes.Ground.geometry} material={groundMaterial} position={[0, -0.848, 0.267]} scale={1.811} castShadow receiveShadow
-          receiveShadow />
+        <mesh name="Ground" geometry={nodes.Ground.geometry} material={groundMaterial} position={[0, -0.848, 0.267]} scale={1.811} castShadow receiveShadow />
         <skinnedMesh name="Grass003" geometry={nodes.Grass003.geometry} material={nodes.Grass003.material} skeleton={nodes.Grass003.skeleton} position={[0.189, -0.052, 0.251]} rotation={[0, 0.133, 0]} scale={1.389} />
         <skinnedMesh name="Grass001" geometry={nodes.Grass001.geometry} material={nodes.Grass001.material} skeleton={nodes.Grass001.skeleton} position={[1.069, -0.023, -0.465]} rotation={[0, 0.133, 0]} scale={2.502} />
         <skinnedMesh name="Grass002" geometry={nodes.Grass002.geometry} material={nodes.Grass002.material} skeleton={nodes.Grass002.skeleton} position={[3.195, -0.023, -11.633]} rotation={[0, 0.133, 0]} scale={2.679} />

@@ -6,10 +6,13 @@ import {
     RepeatWrapping,
     TextureLoader,
 } from 'three'
+import { assetUrl } from '../../../utils/assetUrl.js'
 
 const textureLoader = new TextureLoader()
 
-const defaultBrushTexture = textureLoader.load('/assets/textures/brush/Paint-Brush_normal.png')
+const defaultBrushTexture = textureLoader.load(
+    assetUrl('assets/textures/brush/Paint-Brush_normal.png')
+)
 defaultBrushTexture.wrapS = defaultBrushTexture.wrapT = RepeatWrapping
 defaultBrushTexture.colorSpace = NoColorSpace
 

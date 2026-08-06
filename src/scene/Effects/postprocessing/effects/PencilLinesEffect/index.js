@@ -1,5 +1,6 @@
 import { Effect } from 'postprocessing'
 import { Color, RepeatWrapping, TextureLoader, Uniform } from 'three'
+import { assetUrl } from '../../../../../utils/assetUrl.js'
 
 const colorToHex = (color) => `#${color.getHexString()}`
 
@@ -97,11 +98,11 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 class PencilLinesEffect extends Effect {
     constructor() {
         const textureLoader = new TextureLoader()
-        const cloudTexture = textureLoader.load('/assets/textures/noise/cloud-noise.png')
+        const cloudTexture = textureLoader.load(assetUrl('assets/textures/noise/cloud-noise.png'))
         cloudTexture.wrapS = cloudTexture.wrapT = RepeatWrapping
-        const colorTexture = textureLoader.load('/assets/textures/noise/color-noise.png')
+        const colorTexture = textureLoader.load(assetUrl('assets/textures/noise/color-noise.png'))
         colorTexture.wrapS = colorTexture.wrapT = RepeatWrapping
-        const fiberTexture = textureLoader.load('/assets/textures/noise/fiber-noise.png')
+        const fiberTexture = textureLoader.load(assetUrl('assets/textures/noise/fiber-noise.png'))
         fiberTexture.wrapS = fiberTexture.wrapT = RepeatWrapping
 
         super('PencilLinesEffect', fragmentShader, {

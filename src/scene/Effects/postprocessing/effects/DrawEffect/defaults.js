@@ -1,4 +1,5 @@
 import { Color } from 'three'
+import { assetUrl } from '../../../../../utils/assetUrl.js'
 
 const DRAW_DEFAULTS = {
     thickness: 0.6,
@@ -14,9 +15,9 @@ const DRAW_DEFAULTS = {
 }
 
 const DRAW_TEXTURE_PATHS = {
-    noise: '/assets/textures/noise/noise.png',
-    sketch: '/assets/textures/paper/sketch.jpg',
-    paper: '/assets/textures/paper/Craft_Light.jpg',
+    noise: assetUrl('assets/textures/noise/noise.png'),
+    sketch: assetUrl('assets/textures/paper/sketch.jpg'),
+    paper: assetUrl('assets/textures/paper/Craft_Light.jpg'),
 }
 
 function createDefaultInkColor() {

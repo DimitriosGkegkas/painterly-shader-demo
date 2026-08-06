@@ -1,8 +1,9 @@
 import { Color, DoubleSide, MeshStandardMaterial, NoColorSpace, RepeatWrapping, TextureLoader } from 'three'
+import { assetUrl } from '../../../utils/assetUrl.js'
 
 const textureLoader = new TextureLoader()
 
-const brushTexture = textureLoader.load('/assets/textures/brush/Paint-Brush_normal.png')
+const brushTexture = textureLoader.load(assetUrl('assets/textures/brush/Paint-Brush_normal.png'))
 brushTexture.wrapS = brushTexture.wrapT = RepeatWrapping
 brushTexture.colorSpace = NoColorSpace
 

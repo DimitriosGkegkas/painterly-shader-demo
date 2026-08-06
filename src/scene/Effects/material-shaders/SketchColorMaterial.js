@@ -1,8 +1,9 @@
 import { Color, MeshStandardMaterial, RepeatWrapping, TextureLoader } from 'three'
+import { assetUrl } from '../../../utils/assetUrl.js'
 
 const textureLoader = new TextureLoader()
 
-const sketchTexture = textureLoader.load('/assets/textures/paper/sketch.jpg')
+const sketchTexture = textureLoader.load(assetUrl('assets/textures/paper/sketch.jpg'))
 sketchTexture.wrapS = sketchTexture.wrapT = RepeatWrapping
 
 const shaderUtils = /* glsl */ `

@@ -9,8 +9,9 @@ import { useGLTF, useAnimations } from '@react-three/drei'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
 import { CartoonBlobFiberStaticMaterial } from '../Effects/material-shaders/CartoonBlobFiberStaticMaterial'
+import { assetUrl } from '../../utils/assetUrl.js'
 
-const modelUrl = '/assets/model/Map/Metohologio_example_scene_v1-transformed.glb'
+const modelUrl = assetUrl('assets/model/Map/Metohologio_example_scene_v1-transformed.glb')
 
 type ActionName =
     | 'Action.004'

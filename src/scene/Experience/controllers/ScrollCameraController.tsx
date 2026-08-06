@@ -2,8 +2,9 @@ import React from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { assetUrl } from '../../../utils/assetUrl.js'
 
-const PATH_MODEL_URL = '/example_path_tracking_v1.glb'
+const PATH_MODEL_URL = assetUrl('example_path_tracking_v1.glb')
 const SCROLL_SENSITIVITY = 0.00035
 const SCROLL_DAMPING = 6
 
