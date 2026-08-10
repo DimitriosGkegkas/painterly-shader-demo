@@ -9,6 +9,7 @@ import { useGraph } from '@react-three/fiber'
 import { useGLTF, useAnimations, useTexture } from '@react-three/drei'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
+import { CartoonBlobMaterial } from '../Effects/material-shaders/CartoonBlobMaterial'
 import { CartoonBlobFiberStaticMaterial } from '../Effects/material-shaders/CartoonBlobFiberStaticMaterial'
 import { assetUrl } from '../../utils/assetUrl.js'
 
@@ -68,22 +69,42 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
     }
   }, [actions])
 
-  const material = useMemo(
-    () =>
-      new CartoonBlobFiberMaterial({
-        inkColor: new THREE.Color(0.5, 0, 1),
-        outlineColor: new THREE.Color(0.5, 0, 0),
-        backgroundColor: new THREE.Color(0.5, 0.0, 0),
-        edgeNoiseStrength: 0,
-        edgeStart: 0.28,
-        edgeEnd: 0.28,
-        fiberScale: 3,
-        fiberInfluence: 1,
-        fiberRotationStep: 0.1,
-        fiberThreshold: 0.3,
-      }),
-    []
-  )
+  // const material = useMemo(
+  //   () =>
+  //     new CartoonBlobFiberMaterial({
+  //       inkColor: new THREE.Color(0.5, 0, 1),
+  //       outlineColor: new THREE.Color(0.5, 0, 0),
+  //       backgroundColor: new THREE.Color(0.5, 0.0, 0),
+  //       edgeNoiseStrength: 0,
+  //       edgeStart: 0.28,
+  //       edgeEnd: 0.28,
+  //       fiberScale: 3,
+  //       fiberInfluence: 1,
+  //       fiberRotationStep: 0.1,
+  //       fiberThreshold: 0.3,
+  //     }),
+  //   []
+  // )
+
+      const material = useMemo(
+        () =>
+            new CartoonBlobMaterial({
+                inkColor: new THREE.Color(0.56, 0.75, 1.0),
+                outlineColor: new THREE.Color(0.0, 0.95, 0.82),
+                backgroundColor: new THREE.Color(0.03, 0.08, 0.18),
+                shadeColor: new THREE.Color(0.0, 0.0, 0.0),
+                litColor: new THREE.Color(0.0, 0.0, 1.0),
+                fiberScale: 1.8,
+                fiberInfluence: 0.18,
+                edgeNoiseStrength: 0.12,
+                edgeStart: 0.22,
+                edgeEnd: 0.52,
+                bandCount: 4,
+                blobScale: 0.5,
+                blobAmount: 0.1,
+            }),
+        []
+    )
 
   const groundMaterial = useMemo(
     () =>
@@ -144,10 +165,10 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   return (
     <group castShadow receiveShadow ref={group} {...props} dispose={null}>
       <group castShadow receiveShadow name="Scene">
-        <group castShadow receiveShadow name="Small_Sheep_Armature" position={[3.301, -0.1, 3.002]} rotation={[0, -0.625, 0]} scale={0.637}>
+        {/* <group castShadow receiveShadow name="Small_Sheep_Armature" position={[3.301, -0.1, 3.002]} rotation={[0, -0.625, 0]} scale={0.637}>
           <primitive object={nodes.RL_BoneRoot} />
           <skinnedMesh castShadow receiveShadow name="Small_Sheep" geometry={nodes.Small_Sheep.geometry} material={nodes.Small_Sheep.material} skeleton={nodes.Small_Sheep.skeleton} />
-        </group>
+        </group> */}
         <group castShadow receiveShadow name="Large_Sheep_Armature" position={[3.36, -0.037, 3.251]} rotation={[0, -1.415, 0]} scale={1.13}>
           <primitive object={nodes.RL_BoneRoot_1} />
           <skinnedMesh castShadow receiveShadow name="Large_Sheep" geometry={nodes.Large_Sheep.geometry} material={nodes.Large_Sheep.material} skeleton={nodes.Large_Sheep.skeleton} />

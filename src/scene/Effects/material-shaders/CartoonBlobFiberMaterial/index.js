@@ -11,7 +11,6 @@ import { assetUrl } from '../../../../utils/assetUrl.js'
 
 const textureLoader = new TextureLoader()
 
-// const fiberTexture = textureLoader.load('/assets/textures/noise/abstract-hand-drawn-texture-with-lines-template-design_124009-1716.jpg')
 const fiberTexture = textureLoader.load(assetUrl('assets/textures/brush/Paint-Brush_normal.png'))
 fiberTexture.wrapS = fiberTexture.wrapT = RepeatWrapping
 fiberTexture.colorSpace = NoColorSpace

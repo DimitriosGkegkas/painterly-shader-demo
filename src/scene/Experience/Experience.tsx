@@ -19,11 +19,10 @@ function Experience(props: ExperienceProps) {
             gl={{ antialias: true }}
             shadows={true}
         >
-             <color attach="background" args={[new Color(0,0,1)]} />
+            <color attach='background' args={[new Color(0, 0, 1)]} />
             <Map />
             <ScrollCameraController />
             <ambientLight intensity={10} />
-            {/* <hemisphereLight args={[new Color('#fff7e8'), new Color('#7ea0b8'), 1.1]} /> */}
             <directionalLight
                 position={[8, 12, 6]}
                 intensity={10}

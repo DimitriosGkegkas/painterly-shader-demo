@@ -1,10 +1,8 @@
-import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
-import { Color, Mesh } from 'three'
+import { useEffect, useMemo } from 'react'
+import { Color } from 'three'
 import { CartoonBlobMaterial } from '../Effects/material-shaders/CartoonBlobMaterial'
 
 export default function CartoonBlob(props: JSX.IntrinsicElements['group']) {
-    const meshRef = useRef<Mesh>(null)
     const material = useMemo(
         () =>
             new CartoonBlobMaterial({
@@ -22,19 +20,11 @@ export default function CartoonBlob(props: JSX.IntrinsicElements['group']) {
         []
     )
 
-    // useFrame(({ clock }, delta) => {
-    //     material.uniforms.time.value = clock.getElapsedTime()
-
-    //     if (!meshRef.current) return
-
-    //     meshRef.current.rotation.y += delta * 0.35
-    //     meshRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.45) * 0.18
-    //     meshRef.current.position.y = 2.35 + Math.sin(clock.getElapsedTime() * 0.8) * 0.18
-    // })
+    useEffect(() => () => material.dispose(), [material])
 
     return (
         <group {...props}>
-            <mesh ref={meshRef} material={material} position={[13, 2.35, -2]} castShadow receiveShadow>
+            <mesh material={material} position={[13, 2.35, -2]} castShadow receiveShadow>
                 <torusKnotGeometry args={[0.95, 0.32, 220, 32]} />
             </mesh>
         </group>

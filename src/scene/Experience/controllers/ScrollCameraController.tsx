@@ -53,15 +53,20 @@ function getPathPoints(scene: THREE.Object3D) {
             }
         })
 
-        if (!pointCamera || !pointTarget) {
+        // Traversal callbacks mutate these variables, which TypeScript cannot
+        // infer when it performs control-flow narrowing outside the callback.
+        const cameraNode = pointCamera as THREE.PerspectiveCamera | null
+        const targetNode = pointTarget as THREE.Object3D | null
+
+        if (!cameraNode || !targetNode) {
             console.warn(`Skipping ${pointGroup.name} because it is missing a camera or target child`)
             return pathPoints
         }
 
         pathPoints.push({
-            cameraPosition: pointCamera.getWorldPosition(new THREE.Vector3()),
-            targetPosition: pointTarget.getWorldPosition(new THREE.Vector3()),
-            fov: pointCamera.fov,
+            cameraPosition: cameraNode.getWorldPosition(new THREE.Vector3()),
+            targetPosition: targetNode.getWorldPosition(new THREE.Vector3()),
+            fov: cameraNode.fov,
         })
 
         return pathPoints

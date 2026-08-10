@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 import { useControls } from 'leva'
 import MetohologioSceneV2 from './MetohologioSceneV2'
 import MetohologioSceneV3 from './MetohologioSceneV3'
@@ -18,11 +18,11 @@ const Map = () => {
     return (
         <Suspense fallback={null}>
             <CartoonBlob />
-            <group name='map' >
+            <group name='map'>
                 {model === 'v2' && <MetohologioSceneV2 />}
                 {model === 'v3' && <MetohologioSceneV3 />}
             </group>
-        </Suspense >
+        </Suspense>
     )
 }
 
