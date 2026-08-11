@@ -57,7 +57,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone) as GLTFResult
   const { actions } = useAnimations(animations, group)
-  const wallTexture = useTexture(assetUrl('texture_atlas_no_red.png'))
+  const wallTexture = useTexture(assetUrl('texture_atlas_no_red_v1.png'))
   
 
   React.useEffect(() => {
@@ -136,7 +136,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
 
     return new THREE.MeshStandardMaterial({
       map: wallTexture,
-      color: new THREE.Color(0, 1, 0.7),
+      color: new THREE.Color(1.0, 1, 0.7),
       roughness: materials['Material.002'].roughness,
       metalness: materials['Material.002'].metalness,
       transparent: materials['Material.002'].transparent,
