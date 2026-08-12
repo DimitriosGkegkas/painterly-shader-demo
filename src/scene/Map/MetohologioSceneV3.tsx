@@ -10,6 +10,7 @@ import { GLTF, SkeletonUtils } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
 import { CartoonBlobFiberStaticMaterial } from '../Effects/material-shaders/CartoonBlobFiberStaticMaterial'
 import { assetUrl } from '../../utils/assetUrl.js'
+import { usePlaneWallMaterial } from './usePlaneWallMaterial'
 
 const modelUrl = assetUrl('assets/model/Map/Metohologio_example_scene_v1-transformed.glb')
 
@@ -37,7 +38,7 @@ type GLTFResult = GLTF & {
         Small_Sheep: THREE.SkinnedMesh
         Stone001: THREE.Mesh
         Ground: THREE.Mesh
-        Wall: THREE.Mesh
+        Wall: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>
         Grass003: THREE.SkinnedMesh
         Grass001: THREE.SkinnedMesh
         Grass002: THREE.SkinnedMesh
@@ -67,6 +68,7 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
     const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
     const { nodes } = useGraph(clone) as GLTFResult
     const { actions } = useAnimations(animations, group)
+    const userPlaneMaterial = usePlaneWallMaterial(nodes.Wall.material)
 
 
     const material = useMemo(
@@ -246,11 +248,20 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
                 />
                 <mesh
                     castShadow
-                    
                     name='Wall'
                     geometry={nodes.Wall.geometry}
                     material={new THREE.MeshStandardMaterial({ color: new THREE.Color(1.0, 1, 0.25) })}
                 />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    name='User_Plane'
+                    position={[6.3, 1.6, -8.1]}
+                    rotation={[0, -Math.PI / 2, 0]}
+                    material={userPlaneMaterial}
+                >
+                    <planeGeometry args={[3, 2.2]} />
+                </mesh>
                 <skinnedMesh
                     name='Grass003'
                     geometry={nodes.Grass003.geometry}

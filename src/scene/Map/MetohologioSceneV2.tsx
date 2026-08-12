@@ -12,6 +12,7 @@ import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlo
 import { CartoonBlobMaterial } from '../Effects/material-shaders/CartoonBlobMaterial'
 import { CartoonBlobFiberStaticMaterial } from '../Effects/material-shaders/CartoonBlobFiberStaticMaterial'
 import { assetUrl } from '../../utils/assetUrl.js'
+import { usePlaneWallMaterial } from './usePlaneWallMaterial'
 
 const modelUrl = assetUrl('assets/model/Map/Metohologio_example_scene_v2-transformed.glb')
 
@@ -143,6 +144,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
       side: materials['Material.002'].side,
     })
   }, [materials, wallTexture])
+  const userPlaneMaterial = usePlaneWallMaterial(materials['Material.002'])
 
   nodes.Small_Sheep.material = material
   nodes.Large_Sheep.material = material
@@ -198,6 +200,16 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
           <primitive object={nodes.Bone_6} />
         </group>
         <mesh name="Wall_Plane" geometry={nodes.Wall_Plane.geometry} material={wallMaterial} position={[8.543, 1.02, -8.262]} rotation={[0, 0, -Math.PI / 2]} />
+        <mesh
+          name="User_Plane"
+          position={[6.3, 1.6, -8.1]}
+          rotation={[0, -Math.PI / 2, 0]}
+          castShadow
+          receiveShadow
+          material={userPlaneMaterial}
+        >
+          <planeGeometry args={[3, 2.2]} />
+        </mesh>
         <mesh name="Stone001" geometry={nodes.Stone001.geometry} material={nodes.Stone001.material} position={[0.232, 0.249, -0.185]} scale={1.389} />
         <mesh name="Ground" geometry={nodes.Ground.geometry} material={groundMaterial} position={[0, -0.848, 0.267]} scale={1.811} castShadow receiveShadow />
         <skinnedMesh name="Grass003" geometry={nodes.Grass003.geometry} material={nodes.Grass003.material} skeleton={nodes.Grass003.skeleton} position={[0.189, -0.052, 0.251]} rotation={[0, 0.133, 0]} scale={1.389} />
