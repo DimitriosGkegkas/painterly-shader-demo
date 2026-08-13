@@ -59,7 +59,8 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   const { nodes, materials } = useGraph(clone) as GLTFResult
   const { actions } = useAnimations(animations, group)
   const wallTexture = useTexture(assetUrl('texture_atlas_no_red_v1.png'))
-  
+  const groundShadowTexture = useTexture(assetUrl('ground-path.png'))
+
 
   React.useEffect(() => {
     const activeActions = Object.values(actions)
@@ -87,46 +88,26 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   //   []
   // )
 
-      const material = useMemo(
-        () =>
-            new CartoonBlobMaterial({
-                inkColor: new THREE.Color(0.56, 0.75, 1.0),
-                outlineColor: new THREE.Color(0.0, 0.95, 0.82),
-                backgroundColor: new THREE.Color(0.03, 0.08, 0.18),
-                shadeColor: new THREE.Color(0.0, 0.0, 0.0),
-                litColor: new THREE.Color(0.0, 0.0, 1.0),
-                fiberScale: 1.8,
-                fiberInfluence: 0.18,
-                edgeNoiseStrength: 0.12,
-                edgeStart: 0.22,
-                edgeEnd: 0.52,
-                bandCount: 4,
-                blobScale: 0.5,
-                blobAmount: 0.1,
-            }),
-        []
-    )
-
-  const groundMaterial = useMemo(
+  const material = useMemo(
     () =>
-      new CartoonBlobFiberStaticMaterial({
-        inkColor: new THREE.Color(0.5, 0, 1),
-        outlineColor: new THREE.Color(0.5, 0, 0),
-        backgroundColor: new THREE.Color(0.5, 0.0, 0),
-        edgeNoiseStrength: 0,
-        edgeStart: 0.28,
-        edgeEnd: 0.28,
-        fiberScale: 3,
-        fiberInfluence: 1,
-        fiberRotationStep: 0.1,
-        fiberThreshold: 0.3,
-        staticCameraPosition: [0, 10, 10],
-        staticCameraTarget: [0, 0, 0],
-        worldZStart: 0,
-        worldZEnd: 10,
+      new CartoonBlobMaterial({
+        inkColor: new THREE.Color(0.56, 0.75, 1.0),
+        outlineColor: new THREE.Color(0.0, 0.95, 0.82),
+        backgroundColor: new THREE.Color(0.03, 0.08, 0.18),
+        shadeColor: new THREE.Color(0.0, 0.0, 0.0),
+        litColor: new THREE.Color(0.0, 0.0, 1.0),
+        fiberScale: 1.8,
+        fiberInfluence: 0.18,
+        edgeNoiseStrength: 0.12,
+        edgeStart: 0.22,
+        edgeEnd: 0.52,
+        bandCount: 4,
+        blobScale: 0.5,
+        blobAmount: 0.1,
       }),
     []
   )
+
 
   const wallMaterial = useMemo(() => {
     wallTexture.colorSpace = THREE.SRGBColorSpace
@@ -158,12 +139,27 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   nodes.Grass.material = material
   nodes.Stone001.material = material
 
-  materials['Ground_painterly.001'] = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0.5, 0.5, 0.0),
-    roughness: 1,
-    metalness: 0,
-  })
-
+  const groundMaterial = useMemo(
+    () =>
+      new CartoonBlobFiberStaticMaterial({
+        inkColor: new THREE.Color(0.5, 0, 1),
+        outlineColor: new THREE.Color(0.5, 0, 0),
+        backgroundColor: new THREE.Color(0.5, 0.0, 0),
+        edgeNoiseStrength: 0,
+        edgeStart: 0.28,
+        edgeEnd: 0.28,
+        fiberScale: 3,
+        fiberInfluence: 1,
+        fiberRotationStep: 0.1,
+        fiberThreshold: 0.3,
+        shadowTexture: groundShadowTexture,
+        staticCameraPosition: [0, 10, 10],
+        staticCameraTarget: [0, 0, 0],
+        worldZStart: 0,
+        worldZEnd: 10,
+      }),
+    [groundShadowTexture]
+  )
   return (
     <group castShadow receiveShadow ref={group} {...props} dispose={null}>
       <group castShadow receiveShadow name="Scene">

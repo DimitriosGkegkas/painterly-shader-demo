@@ -18,6 +18,8 @@ vec3 surfaceViewNormal = normalize(
 vec3 cameraDirection = normalize(staticViewPosition);
 
 float materialLightIntensity = clamp(luma(materialLitResult), 0.0, 1.0);
+float shadowTextureValue = clamp(luma(texture(shadowTexture, vSurfaceUv).rgb), 0.0, 1.0);
+materialLightIntensity = clamp(materialLightIntensity - 0.6*shadowTextureValue, 0.0, 1.0);
 float materialLightDarkness = 1.0 - materialLightIntensity;
 float shadowShade = mix(1.0 - shadowStrength, 1.0, materialLightIntensity);
 

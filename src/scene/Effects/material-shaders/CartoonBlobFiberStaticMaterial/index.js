@@ -1,9 +1,12 @@
 import {
     Color,
+    DataTexture,
     MeshStandardMaterial,
     NoColorSpace,
+    RGBAFormat,
     RepeatWrapping,
     TextureLoader,
+    UnsignedByteType,
     Vector3,
 } from 'three'
 import fragmentDebugBlock from './cartoonBlobFiberFragmentDebug.glsl'
@@ -14,6 +17,17 @@ const textureLoader = new TextureLoader()
 const fiberTexture = textureLoader.load(assetUrl('assets/textures/brush/Paint-Brush_normal.png'))
 fiberTexture.wrapS = fiberTexture.wrapT = RepeatWrapping
 fiberTexture.colorSpace = NoColorSpace
+
+const defaultShadowTexture = new DataTexture(
+    new Uint8Array([0, 0, 0, 255]),
+    1,
+    1,
+    RGBAFormat,
+    UnsignedByteType
+)
+defaultShadowTexture.colorSpace = NoColorSpace
+defaultShadowTexture.wrapS = defaultShadowTexture.wrapT = RepeatWrapping
+defaultShadowTexture.needsUpdate = true
 
 const noiseFunctions = /* glsl */ `
 float hash13(vec3 p) {
@@ -140,6 +154,7 @@ class CartoonBlobFiberStaticMaterial extends MeshStandardMaterial {
         const fiberOffset = options.fiberOffset ?? 0.12
         const fiberRotationStep = options.fiberRotationStep ?? 0.35
         const fiberThreshold = options.fiberThreshold ?? 0.3
+        const customShadowTexture = options.shadowTexture ?? defaultShadowTexture
         const shadowStrength = options.shadowStrength ?? 0.85
         const staticCameraPosition = toVector3(options.staticCameraPosition, new Vector3(0, 0, 10))
         const staticCameraTarget = toVector3(options.staticCameraTarget, new Vector3(0, 0, 0))
@@ -161,6 +176,7 @@ class CartoonBlobFiberStaticMaterial extends MeshStandardMaterial {
         delete materialOptions.fiberOffset
         delete materialOptions.fiberRotationStep
         delete materialOptions.fiberThreshold
+        delete materialOptions.shadowTexture
         delete materialOptions.shadowStrength
         delete materialOptions.staticCameraPosition
         delete materialOptions.staticCameraTarget
@@ -190,6 +206,7 @@ class CartoonBlobFiberStaticMaterial extends MeshStandardMaterial {
             fiberOffset: { value: fiberOffset },
             fiberRotationStep: { value: fiberRotationStep },
             fiberThreshold: { value: fiberThreshold },
+            shadowTexture: { value: customShadowTexture },
             shadowStrength: { value: shadowStrength },
             staticCameraPosition: { value: staticCameraPosition },
             staticCameraTarget: { value: staticCameraTarget },
@@ -198,7 +215,7 @@ class CartoonBlobFiberStaticMaterial extends MeshStandardMaterial {
             worldZEnd: { value: worldZEnd },
         }
 
-        this.customProgramCacheKey = () => 'CartoonBlobFiberStaticMaterial_v1'
+        this.customProgramCacheKey = () => 'CartoonBlobFiberStaticMaterial_v2'
 
         this.onBeforeCompile = (shader) => {
             for (const uniformName of Object.keys(this.uniforms)) {
@@ -244,6 +261,7 @@ uniform float fiberInfluence;
 uniform float fiberOffset;
 uniform float fiberRotationStep;
 uniform float fiberThreshold;
+uniform sampler2D shadowTexture;
 uniform float shadowStrength;
 uniform vec3 staticCameraPosition;
 uniform vec3 staticCameraTarget;

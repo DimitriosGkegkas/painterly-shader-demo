@@ -5,7 +5,7 @@ Custom Metohologio v3 scene.
 import * as THREE from 'three'
 import React, { useMemo } from 'react'
 import { useGraph } from '@react-three/fiber'
-import { useGLTF, useAnimations } from '@react-three/drei'
+import { useGLTF, useAnimations, useTexture } from '@react-three/drei'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
 import { CartoonBlobFiberStaticMaterial } from '../Effects/material-shaders/CartoonBlobFiberStaticMaterial'
@@ -68,6 +68,7 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
     const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
     const { nodes } = useGraph(clone) as GLTFResult
     const { actions } = useAnimations(animations, group)
+    const groundShadowTexture = useTexture(assetUrl('ground-path.png'))
     const userPlaneMaterial = usePlaneWallMaterial(nodes.Wall.material)
 
 
@@ -101,12 +102,13 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
                 fiberInfluence: 1,
                 fiberRotationStep: 0.1,
                 fiberThreshold: 0.3,
+                shadowTexture: groundShadowTexture,
                 staticCameraPosition: [0, 10, 10],
                 staticCameraTarget: [0, 0, 0],
                 worldZStart: 0,
                 worldZEnd: 10,
             }),
-        []
+        [groundShadowTexture]
     )
     React.useEffect(() => {
         const activeActions = Object.values(actions)
