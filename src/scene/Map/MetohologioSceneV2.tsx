@@ -104,6 +104,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
         bandCount: 4,
         blobScale: 0.5,
         blobAmount: 0.1,
+        noiseScale: 20.0,
       }),
     []
   )

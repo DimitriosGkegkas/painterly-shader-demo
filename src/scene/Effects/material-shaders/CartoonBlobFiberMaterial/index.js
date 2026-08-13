@@ -15,6 +15,10 @@ const fiberTexture = textureLoader.load(assetUrl('assets/textures/brush/Paint-Br
 fiberTexture.wrapS = fiberTexture.wrapT = RepeatWrapping
 fiberTexture.colorSpace = NoColorSpace
 
+const defaultNoiseTexture = textureLoader.load(assetUrl('assets/textures/noise/cloud-noise.png'))
+defaultNoiseTexture.wrapS = defaultNoiseTexture.wrapT = RepeatWrapping
+defaultNoiseTexture.colorSpace = NoColorSpace
+
 const noiseFunctions = /* glsl */ `
 float hash13(vec3 p) {
     p = fract(p * 0.1031);
@@ -93,6 +97,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         const edgeNoiseScale = options.edgeNoiseScale ?? 1.15
         const edgeNoiseStrength = options.edgeNoiseStrength ?? 0.09
         const customFiberTexture = options.fiberTexture ?? fiberTexture
+        const customNoiseTexture = options.noiseTexture ?? defaultNoiseTexture
+        const noiseScale = options.noiseScale ?? 1
         const fiberScale = options.fiberScale ?? 0.1
         const fiberInfluence = options.fiberInfluence ?? 1
         const fiberOffset = options.fiberOffset ?? 0.12
@@ -110,6 +116,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         delete materialOptions.edgeNoiseScale
         delete materialOptions.edgeNoiseStrength
         delete materialOptions.fiberTexture
+        delete materialOptions.noiseTexture
+        delete materialOptions.noiseScale
         delete materialOptions.fiberScale
         delete materialOptions.fiberInfluence
         delete materialOptions.fiberOffset
@@ -135,6 +143,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             edgeNoiseScale: { value: edgeNoiseScale },
             edgeNoiseStrength: { value: edgeNoiseStrength },
             fiberTexture: { value: customFiberTexture },
+            noiseTexture: { value: customNoiseTexture },
+            noiseScale: { value: noiseScale },
             fiberScale: { value: fiberScale },
             fiberInfluence: { value: fiberInfluence },
             fiberOffset: { value: fiberOffset },
@@ -144,7 +154,7 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             cameraFar: { value: cameraFar },
         }
 
-        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v5'
+        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v6'
 
         this.onBeforeRender = (_renderer, _scene, camera) => {
             if (camera instanceof PerspectiveCamera) {
@@ -188,6 +198,8 @@ uniform float edgeEnd;
 uniform float edgeNoiseScale;
 uniform float edgeNoiseStrength;
 uniform sampler2D fiberTexture;
+uniform sampler2D noiseTexture;
+uniform float noiseScale;
 uniform float fiberScale;
 uniform float fiberInfluence;
 uniform float fiberOffset;

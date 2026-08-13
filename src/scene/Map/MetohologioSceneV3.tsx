@@ -85,6 +85,7 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
                 fiberInfluence: 1,
                 fiberRotationStep: 0.1,
                 fiberThreshold: 0.3,
+                noiseScale: 10.0,
             }),
         []
     )
@@ -107,6 +108,7 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
                 staticCameraTarget: [0, 0, 0],
                 worldZStart: 0,
                 worldZEnd: 10,
+                noiseScale: 20.0,
             }),
         [groundShadowTexture]
     )

@@ -21,6 +21,13 @@ vec3 sampledTextureColor = sampleTexture2DRotated(
     max(fiberScale, 0.0001),
     0.0
 );
+vec3 sampledNoiseColor = sampleTexture2DRotated(
+    noiseTexture,
+    vSurfaceUv,
+    max(noiseScale, 0.0001),
+    0.0
+);
+float noiseValue = clamp(luma(sampledNoiseColor), 0.0, 1.0);
 
 vec3 textureVector = vec3(
     sampledTextureColor.r * surfaceViewNormal.x,
@@ -42,8 +49,8 @@ if (edgeOrientationDegrees < 0.0) {
 float edgeOrientation = edgeOrientationDegrees / 360.0;
 if (edge < 0.4) {
     edgeOrientation = 0.0;
-    gl_FragColor.rgb = vec3(depth01, 0.0, floor(materialLightIntensity * 6.0 + 3.0*sampledTextureColor.r) / 5.0);
+    gl_FragColor.rgb = vec3(depth01, noiseValue, floor(materialLightIntensity * 6.0 + 3.0*sampledTextureColor.r) / 5.0);
 }
 else {
-    gl_FragColor.rgb = vec3(depth01, 0.0, 1.0 - edge);
+    gl_FragColor.rgb = vec3(depth01, noiseValue, 1.0 - edge);
 }
