@@ -9,6 +9,7 @@ import { useGraph } from '@react-three/fiber'
 import { useGLTF, useAnimations, useTexture } from '@react-three/drei'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
+import { usePlaneMaterialControls } from './PlaneMaterialControls'
 import { assetUrl } from '../../utils/assetUrl.js'
 
 const modelUrl = assetUrl('assets/model/Map/Metohologio_example_scene_v2-transformed.glb')
@@ -50,13 +51,18 @@ type GLTFResult = GLTF & {
 }
 
 export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']) {
+  const controls = usePlaneMaterialControls()
+  if (controls.sceneModel !== 'v2') {
+    throw new Error('MetohologioSceneV2 requires v2 plane material controls')
+  }
+
+  const { fiberMaterial, shadowTextureUrl } = controls
   const group = React.useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(modelUrl)
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
-  const { nodes, materials } = useGraph(clone) as GLTFResult
+  const { nodes } = useGraph(clone) as GLTFResult
   const { actions } = useAnimations(animations, group)
-  const wallTexture = useTexture(assetUrl('texture_atlas_no_red_v1.png'))
-  const groundShadowTexture = useTexture(assetUrl('ground-path-inverted.png'))
+  const shadowTexture = useTexture(shadowTextureUrl)
 
 
   React.useEffect(() => {
@@ -68,47 +74,38 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
     }
   }, [actions])
 
-  const material = useMemo(
-    () =>
-      new CartoonBlobFiberMaterial({
-        backgroundLight: 0.15,
-        edgeNoiseStrength: 0,
-        edgeStart: 0.28,
-        edgeEnd: 0.28,
-        fiberScale: 3,
-      }),
-    []
-  )
-
 
   const wallMaterial = useMemo(() => {
-    wallTexture.colorSpace = THREE.SRGBColorSpace
-    wallTexture.flipY = false
-    wallTexture.wrapS = THREE.RepeatWrapping
-    wallTexture.wrapT = THREE.RepeatWrapping
-    wallTexture.repeat.set(1, 1)
+    shadowTexture.flipY = false
+    shadowTexture.colorSpace = THREE.NoColorSpace
+    shadowTexture.wrapS = THREE.RepeatWrapping
+    shadowTexture.wrapT = THREE.RepeatWrapping
+    shadowTexture.repeat.set(1, 1)
 
     return new CartoonBlobFiberMaterial({
-        backgroundLight: 0.26,
-        edgeNoiseStrength: 0,
-        edgeStart: 0.28,
-        edgeEnd: 0.28,
-        fiberScale: 3,
+        backgroundLight: fiberMaterial.backgroundLight,
+        edgeNoiseStrength: fiberMaterial.edgeNoiseStrength,
+        edgeStart: fiberMaterial.edgeStart,
+        edgeEnd: fiberMaterial.edgeEnd,
+        fiberScale: fiberMaterial.fiberScale,
+        noiseScale: fiberMaterial.noiseScale,
+        bandCount: fiberMaterial.bandCount,
+        bandSoftness: fiberMaterial.bandSoftness,
+        bandTextureInfluence: fiberMaterial.bandTextureInfluence,
         useStaticCamera: true,
-        shadowTexture: wallTexture,
-        staticCameraPosition: [10, 10, 10],
-        staticCameraTarget: [0, 0, 0],
+        shadowTexture,
+        disableEdgeNormals: true,
         worldZStart: 0,
         worldZEnd: 10,
         side: THREE.DoubleSide
       })
-  }, [materials, wallTexture])
+  }, [fiberMaterial, shadowTexture])
 
 
   return (
     <group castShadow receiveShadow ref={group} {...props} dispose={null}>
       <group castShadow receiveShadow name="Scene">
-        <mesh name="Wall_Plane" geometry={nodes.Wall_Plane.geometry} material={wallMaterial} position={[8.543, 1.02, -8.262]} rotation={[0, 0, -Math.PI / 2]} />
+        <mesh name="Wall_Plane" geometry={nodes.Wall_Plane.geometry} material={wallMaterial} position={[-1, 0, -1]} rotation={[0, Math.PI / 4, -Math.PI / 2]} />
       </group>
     </group>
   )

@@ -34,17 +34,6 @@ defaultShadowTexture.colorSpace = NoColorSpace
 defaultShadowTexture.wrapS = defaultShadowTexture.wrapT = RepeatWrapping
 defaultShadowTexture.needsUpdate = true
 
-const defaultLightTexture = new DataTexture(
-    new Uint8Array([0, 0, 0, 255]),
-    1,
-    1,
-    RGBAFormat,
-    UnsignedByteType
-)
-defaultLightTexture.colorSpace = NoColorSpace
-defaultLightTexture.wrapS = defaultLightTexture.wrapT = RepeatWrapping
-defaultLightTexture.needsUpdate = true
-
 const noiseFunctions = /* glsl */ `
 float hash13(vec3 p) {
     p = fract(p * 0.1031);
@@ -175,8 +164,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         const bandSoftness = options.bandSoftness ?? 0.12
         const bandTextureInfluence = options.bandTextureInfluence ?? 0.35
         const useStaticCamera = options.useStaticCamera ?? false
+        const disableEdgeNormals = options.disableEdgeNormals ?? false
         const customShadowTexture = options.shadowTexture ?? defaultShadowTexture
-        const customLightTexture = options.lightTexture ?? defaultLightTexture
         const staticCameraPosition = toVector3(options.staticCameraPosition, new Vector3(0, 0, 10))
         const staticCameraTarget = toVector3(options.staticCameraTarget, new Vector3(0, 0, 0))
         const staticCameraUp = toVector3(options.staticCameraUp, new Vector3(0, 1, 0))
@@ -199,8 +188,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         delete materialOptions.bandSoftness
         delete materialOptions.bandTextureInfluence
         delete materialOptions.useStaticCamera
+        delete materialOptions.disableEdgeNormals
         delete materialOptions.shadowTexture
-        delete materialOptions.lightTexture
         delete materialOptions.staticCameraPosition
         delete materialOptions.staticCameraTarget
         delete materialOptions.staticCameraUp
@@ -229,8 +218,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             bandSoftness: { value: bandSoftness },
             bandTextureInfluence: { value: bandTextureInfluence },
             useStaticCamera: { value: useStaticCamera },
+            disableEdgeNormals: { value: disableEdgeNormals },
             shadowTexture: { value: customShadowTexture },
-            lightTexture: { value: customLightTexture },
             staticCameraPosition: { value: staticCameraPosition },
             staticCameraTarget: { value: staticCameraTarget },
             staticCameraUp: { value: staticCameraUp },
@@ -240,7 +229,7 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             cameraFar: { value: cameraFar },
         }
 
-        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v16'
+        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v19'
 
         this.onBeforeRender = (_renderer, _scene, camera) => {
             if (camera instanceof PerspectiveCamera) {
@@ -294,8 +283,8 @@ uniform float bandCount;
 uniform float bandSoftness;
 uniform float bandTextureInfluence;
 uniform bool useStaticCamera;
+uniform bool disableEdgeNormals;
 uniform sampler2D shadowTexture;
-uniform sampler2D lightTexture;
 uniform vec3 staticCameraPosition;
 uniform vec3 staticCameraTarget;
 uniform vec3 staticCameraUp;

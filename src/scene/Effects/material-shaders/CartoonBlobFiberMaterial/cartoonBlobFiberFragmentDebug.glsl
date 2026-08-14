@@ -11,7 +11,6 @@ float depth01 = clamp(
 if (useStaticCamera) {
     vec3 surfaceWorldNormal = normalize(vWorldNormal) * (gl_FrontFacing ? 1.0 : -1.0);
     float shadowTextureValue = clamp(luma(texture(shadowTexture, vSurfaceUv).rgb), 0.0, 1.0);
-    float lightTextureValue = clamp(luma(texture(lightTexture, vSurfaceUv).rgb), 0.0, 1.0);
     float worldZRange = worldZEnd - worldZStart;
 
     surfaceViewNormal = normalize(
@@ -24,7 +23,7 @@ if (useStaticCamera) {
     );
 
     materialLightIntensity = clamp(
-        materialLightIntensity + shadowTextureValue + lightTextureValue - 1.0,
+        materialLightIntensity + shadowTextureValue - 1.0,
         0.0,
         1.0
     );
@@ -37,6 +36,10 @@ if (useStaticCamera) {
     if (worldZRange < 0.0) {
         depth01 = 1.0 - depth01;
     }
+}
+
+if (disableEdgeNormals) {
+    surfaceViewNormal = vec3(0.0, 0.0, 1.0);
 }
 
 float fiberValue = sampleTexture2DRotated(
@@ -74,4 +77,4 @@ float edgeOrientation = fract(atan(surfaceViewNormal.y, surfaceViewNormal.x) / 6
 if(abs(surfaceViewNormal.x) < 0.0001 && abs(surfaceViewNormal.y) < 0.0001) {
     edgeOrientation = 0.0;
 }
-gl_FragColor.rgb = vec3(depth01 +  edge * edgeOrientation, noiseValue, quantizedLight - edge);
+gl_FragColor.rgb = vec3(depth01 + edge * edgeOrientation, noiseValue, quantizedLight - edge);

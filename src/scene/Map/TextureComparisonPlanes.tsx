@@ -5,14 +5,19 @@ import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlo
 import { usePlaneMaterialControls } from './PlaneMaterialControls'
 
 type TextureComparisonPlanesProps = JSX.IntrinsicElements['group'] & {
-    texture: THREE.Texture
+    label: string
+    shadowTexture: THREE.Texture
+    previewTexture?: THREE.Texture
 }
 
 export default function TextureComparisonPlanes({
-    texture,
+    label,
+    shadowTexture,
+    previewTexture,
     ...props
 }: TextureComparisonPlanesProps) {
     const { fiberMaterial } = usePlaneMaterialControls()
+    const displayTexture = previewTexture ?? shadowTexture
 
     const blueGradientMaterial = useMemo(
         () =>
@@ -27,24 +32,24 @@ export default function TextureComparisonPlanes({
                 bandSoftness: fiberMaterial.bandSoftness,
                 bandTextureInfluence: fiberMaterial.bandTextureInfluence,
                 useStaticCamera: true,
-                shadowTexture: texture,
+                shadowTexture,
                 staticCameraPosition: [0, 0, 10],
                 staticCameraTarget: [0, 0, 0],
                 worldZStart: 0,
                 worldZEnd: 1,
                 side: THREE.DoubleSide,
             }),
-        [fiberMaterial, texture]
+        [fiberMaterial, shadowTexture]
     )
 
     const plainBlueGradientMaterial = useMemo(
         () =>
             new THREE.MeshBasicMaterial({
-                map: texture,
+                map: displayTexture,
                 color: new THREE.Color(1.0, 1.0, 1.0),
                 side: THREE.DoubleSide,
             }),
-        [texture]
+        [displayTexture]
     )
 
     React.useEffect(() => {
@@ -63,7 +68,7 @@ export default function TextureComparisonPlanes({
                 anchorX='center'
                 anchorY='middle'
             >
-                Texture Through Custom Shader
+                {label} Through Custom Shader
             </Text>
             <mesh
                 name='Blue_Gradient_Plane'
@@ -79,7 +84,7 @@ export default function TextureComparisonPlanes({
                 anchorX='center'
                 anchorY='middle'
             >
-                Plane Texture
+                {label}
             </Text>
             <mesh
                 name='Plain_Blue_Gradient_Plane'

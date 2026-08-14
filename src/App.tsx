@@ -10,19 +10,24 @@ function App() {
         model: {
             value: 'v3' as SceneModel,
             options: {
-                'Metohologio v2': 'v2',
-                'Metohologio v3': 'v3',
-                'Debug Planes': 'debug',
+                'Scene': 'v3',
+                'Plane House': 'v2',
+                'Debug': 'debug',
             },
         },
     }) as { model: SceneModel }
 
     const content = <Experience model={model} />
+    const shouldUsePlaneMaterialControls = model === 'debug' || model === 'v2'
 
     return (
         <>
-            {model === 'debug' ? (
-                <PlaneMaterialControlsProvider>{content}</PlaneMaterialControlsProvider>
+            {shouldUsePlaneMaterialControls ? (
+                <PlaneMaterialControlsProvider
+                    sceneModel={model === 'debug' ? 'debug' : 'v2'}
+                >
+                    {content}
+                </PlaneMaterialControlsProvider>
             ) : (
                 content
             )}

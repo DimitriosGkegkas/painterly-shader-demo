@@ -35,9 +35,10 @@ function Experience({ model, ...props }: ExperienceProps) {
                 </group>
             </Suspense>
             {
-                model === 'debug' ?
-                    <OrbitControls enablePan={true} enableZoom={true} enableRotate={false} />
-                    : <ScrollCameraController />
+                model === 'v3' ?
+                    <ScrollCameraController />
+                    : model === 'debug' ? <OrbitControls enablePan={true} enableZoom={true} enableRotate={false} /> 
+                    : <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
             }
             <ambientLight intensity={10} />
             <directionalLight
@@ -56,7 +57,7 @@ function Experience({ model, ...props }: ExperienceProps) {
                 shadow-bias={-0.0001}
             />
             <directionalLight
-                position={[-8, 12, -6]}
+                position={[-8, 12, 6]}
                 intensity={10}
                 color={new Color(1.0, 1.0, 1.0)}
                 castShadow
