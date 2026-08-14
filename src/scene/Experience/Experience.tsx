@@ -1,14 +1,20 @@
 import type { ComponentProps } from 'react'
+import { Suspense } from 'react'
 import { Color } from 'three'
 import { Canvas } from '@react-three/fiber'
 import { PostProcessing } from '../Effects/postprocessing/PostProcessing'
-import Map from '../Map'
 import { Perf } from 'r3f-perf'
 import ScrollCameraController from './controllers/ScrollCameraController'
+import type { SceneModel } from '../../App'
+import MetohologioSceneV2 from '../Map/MetohologioSceneV2'
+import MetohologioSceneV3 from '../Map/MetohologioSceneV3'
+import DebugPlanes from '../Map/DebugPlanes'
 
-type ExperienceProps = Omit<ComponentProps<typeof Canvas>, 'children'>
+type ExperienceProps = Omit<ComponentProps<typeof Canvas>, 'children'> & {
+    model: SceneModel
+}
 
-function Experience(props: ExperienceProps) {
+function Experience({ model, ...props }: ExperienceProps) {
     return (
         <Canvas
             {...props}
@@ -19,8 +25,14 @@ function Experience(props: ExperienceProps) {
             gl={{ antialias: true }}
             shadows={true}
         >
-            <color attach='background' args={[new Color(0, 0, 1)]} />
-            <Map />
+            <color attach='background' args={[new Color(1, 0, 1)]} />
+            <Suspense fallback={null}>
+                <group name='map'>
+                    {model === 'v2' && <MetohologioSceneV2 />}
+                    {model === 'v3' && <MetohologioSceneV3 />}
+                    {model === 'debug' && <DebugPlanes />}
+                </group>
+            </Suspense>
             <ScrollCameraController />
             <ambientLight intensity={10} />
             <directionalLight

@@ -1,20 +1,37 @@
 #include <dithering_fragment>
 
-vec3 cameraDirection = normalize(vViewPosition);
 vec3 surfaceViewNormal = normalize(normal);
-
 float materialLightIntensity = clamp(luma(materialLitResult), 0.0, 1.0);
-float materialLightDarkness = 1.0 - materialLightIntensity;
+float depth01 = clamp((vViewPosition.z - cameraNear) / max(10.0 - cameraNear, 0.0001), 0.0, 1.0);
 
-float cameraDistance = length(vViewPosition);
-float cameraViewDepth = vViewPosition.z;
-float depth01 = clamp((cameraViewDepth - cameraNear) / max(10.0 - cameraNear, 0.0001), 0.0, 1.0);
+if (useStaticCamera) {
+    vec3 staticViewPosition = worldToStaticView(
+        vWorldPosition - staticCameraPosition,
+        staticCameraPosition,
+        staticCameraTarget,
+        staticCameraUp
+    );
+    vec3 surfaceWorldNormal = normalize(vWorldNormal) * (gl_FrontFacing ? 1.0 : -1.0);
 
+    surfaceViewNormal = normalize(
+        worldToStaticView(
+            surfaceWorldNormal,
+            staticCameraPosition,
+            staticCameraTarget,
+            staticCameraUp
+        )
+    );
 
-// gl_FragColor.rgb = vec3(edgeOrientation);
-// gl_FragColor.rgb = vec3(edge);
-// gl_FragColor.rgb = vec3(materialLightIntensity);
-// gl_FragColor.rgb = vec3(depth01,edgeOrientation,materialLightIntensity);
+    float shadowTextureValue = clamp(luma(texture(shadowTexture, vSurfaceUv).rgb), 0.0, 1.0);
+    materialLightIntensity = clamp(materialLightIntensity - 0.6 * (1.0 - shadowTextureValue), 0.0, 1.0);
+
+    float worldZRange = worldZEnd - worldZStart;
+    depth01 = clamp((vWorldPosition.z - worldZStart) / max(abs(worldZRange), 0.0001), 0.0, 1.0);
+    if (worldZRange < 0.0) {
+        depth01 = 1.0 - depth01;
+    }
+}
+
 vec3 sampledTextureColor = sampleTexture2DRotated(
     fiberTexture,
     vSurfaceUv,
@@ -29,28 +46,22 @@ vec3 sampledNoiseColor = sampleTexture2DRotated(
 );
 float noiseValue = clamp(luma(sampledNoiseColor), 0.0, 1.0);
 
-vec3 textureVector = vec3(
-    sampledTextureColor.r * surfaceViewNormal.x,
-    sampledTextureColor.g * surfaceViewNormal.y,
-    sampledTextureColor.b * surfaceViewNormal.z
-);
-
-// float edgeNoise = (fbm3(vWorldPosition * edgeNoiseScale + vec3(0.0, time * 0.3, time * 0.18)) * 2.0 - 1.0) * edgeNoiseStrength;
-float edge = smoothstep(edgeStart, edgeEnd, (1.0 - abs(surfaceViewNormal.z)) * (sampledTextureColor.r ));
-// edge = edge * smoothstep(0.46, 0.48,  (sampledTextureColor.r ));
-
+float edge = smoothstep(edgeStart, edgeEnd, (1.0 - abs(surfaceViewNormal.z)) * sampledTextureColor.r);
 vec2 projectedNormal = surfaceViewNormal.xy;
-float projectedNormalLength = length(projectedNormal);
 
 float edgeOrientationDegrees = degrees(atan(projectedNormal.y, projectedNormal.x));
 if (edgeOrientationDegrees < 0.0) {
     edgeOrientationDegrees += 360.0;
 }
+
 float edgeOrientation = edgeOrientationDegrees / 360.0;
 if (edge < 0.4) {
     edgeOrientation = 0.0;
-    gl_FragColor.rgb = vec3(depth01, noiseValue, floor(materialLightIntensity * 6.0 + 3.0*sampledTextureColor.r) / 5.0);
-}
-else {
-    gl_FragColor.rgb = vec3(depth01, noiseValue, 1.0 - edge);
+    gl_FragColor.rgb = vec3(
+        depth01 + edgeOrientation,
+        noiseValue,
+        floor((materialLightIntensity + sampledTextureColor.r) * 6.0) / 8.0
+    );
+} else {
+    gl_FragColor.rgb = vec3(depth01 + edgeOrientation, noiseValue, 1.0 - edge);
 }

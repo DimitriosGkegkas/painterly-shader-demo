@@ -10,7 +10,6 @@ import { useGLTF, useAnimations, useTexture } from '@react-three/drei'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
 import { CartoonBlobMaterial } from '../Effects/material-shaders/CartoonBlobMaterial'
-import { CartoonBlobFiberStaticMaterial } from '../Effects/material-shaders/CartoonBlobFiberStaticMaterial'
 import { assetUrl } from '../../utils/assetUrl.js'
 import { usePlaneWallMaterial } from './usePlaneWallMaterial'
 
@@ -59,7 +58,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
   const { nodes, materials } = useGraph(clone) as GLTFResult
   const { actions } = useAnimations(animations, group)
   const wallTexture = useTexture(assetUrl('texture_atlas_no_red_v1.png'))
-  const groundShadowTexture = useTexture(assetUrl('ground-path.png'))
+  const groundShadowTexture = useTexture(assetUrl('ground-path-inverted.png'))
 
 
   React.useEffect(() => {
@@ -117,16 +116,26 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
     wallTexture.wrapT = THREE.RepeatWrapping
     wallTexture.repeat.set(1, 1)
 
-    return new THREE.MeshStandardMaterial({
-      map: wallTexture,
-      color: new THREE.Color(1.0, 1, 0.7),
-      roughness: materials['Material.002'].roughness,
-      metalness: materials['Material.002'].metalness,
-      transparent: materials['Material.002'].transparent,
-      side: materials['Material.002'].side,
-    })
+    return new CartoonBlobFiberMaterial({
+        inkColor: new THREE.Color(0.5, 1.9, 1.0),
+        outlineColor: new THREE.Color(0.5, 0, 1.0),
+        backgroundColor: new THREE.Color(0.5, 0.0, 1.0),
+        edgeNoiseStrength: 0,
+        edgeStart: 0.28,
+        edgeEnd: 0.28,
+        fiberScale: 3,
+        fiberInfluence: 1,
+        fiberRotationStep: 0.1,
+        fiberThreshold: 0.3,
+        useStaticCamera: true,
+        shadowTexture: wallTexture,
+        staticCameraPosition: [10, 10, 10],
+        staticCameraTarget: [0, 0, 0],
+        worldZStart: 0,
+        worldZEnd: 10,
+        side: THREE.DoubleSide
+      })
   }, [materials, wallTexture])
-  const userPlaneMaterial = usePlaneWallMaterial(materials['Material.002'])
 
   nodes.Small_Sheep.material = material
   nodes.Large_Sheep.material = material
@@ -142,7 +151,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
 
   const groundMaterial = useMemo(
     () =>
-      new CartoonBlobFiberStaticMaterial({
+      new CartoonBlobFiberMaterial({
         inkColor: new THREE.Color(0.5, 0, 1),
         outlineColor: new THREE.Color(0.5, 0, 0),
         backgroundColor: new THREE.Color(0.5, 0.0, 0),
@@ -153,6 +162,7 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
         fiberInfluence: 1,
         fiberRotationStep: 0.1,
         fiberThreshold: 0.3,
+        useStaticCamera: true,
         shadowTexture: groundShadowTexture,
         staticCameraPosition: [0, 10, 10],
         staticCameraTarget: [0, 0, 0],
@@ -197,16 +207,6 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
           <primitive object={nodes.Bone_6} />
         </group>
         <mesh name="Wall_Plane" geometry={nodes.Wall_Plane.geometry} material={wallMaterial} position={[8.543, 1.02, -8.262]} rotation={[0, 0, -Math.PI / 2]} />
-        <mesh
-          name="User_Plane"
-          position={[6.3, 1.6, -8.1]}
-          rotation={[0, -Math.PI / 2, 0]}
-          castShadow
-          receiveShadow
-          material={userPlaneMaterial}
-        >
-          <planeGeometry args={[3, 2.2]} />
-        </mesh>
         <mesh name="Stone001" geometry={nodes.Stone001.geometry} material={nodes.Stone001.material} position={[0.232, 0.249, -0.185]} scale={1.389} />
         <mesh name="Ground" geometry={nodes.Ground.geometry} material={groundMaterial} position={[0, -0.848, 0.267]} scale={1.811} castShadow receiveShadow />
         <skinnedMesh name="Grass003" geometry={nodes.Grass003.geometry} material={nodes.Grass003.material} skeleton={nodes.Grass003.skeleton} position={[0.189, -0.052, 0.251]} rotation={[0, 0.133, 0]} scale={1.389} />

@@ -24,7 +24,7 @@ export default function CartoonBlob(props: JSX.IntrinsicElements['group']) {
 
     return (
         <group {...props}>
-            <mesh material={material} position={[13, 2.35, -2]} castShadow receiveShadow>
+            <mesh material={material} castShadow receiveShadow>
                 <torusKnotGeometry args={[0.95, 0.32, 220, 32]} />
             </mesh>
         </group>

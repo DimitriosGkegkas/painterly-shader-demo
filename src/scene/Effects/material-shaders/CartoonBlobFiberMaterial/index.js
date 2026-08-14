@@ -1,10 +1,14 @@
 import {
     Color,
+    DataTexture,
     MeshStandardMaterial,
     NoColorSpace,
     PerspectiveCamera,
+    RGBAFormat,
     RepeatWrapping,
     TextureLoader,
+    UnsignedByteType,
+    Vector3,
 } from 'three'
 import fragmentDebugBlock from './cartoonBlobFiberFragmentDebug.glsl'
 import { assetUrl } from '../../../../utils/assetUrl.js'
@@ -18,6 +22,17 @@ fiberTexture.colorSpace = NoColorSpace
 const defaultNoiseTexture = textureLoader.load(assetUrl('assets/textures/noise/cloud-noise.png'))
 defaultNoiseTexture.wrapS = defaultNoiseTexture.wrapT = RepeatWrapping
 defaultNoiseTexture.colorSpace = NoColorSpace
+
+const defaultShadowTexture = new DataTexture(
+    new Uint8Array([0, 0, 0, 255]),
+    1,
+    1,
+    RGBAFormat,
+    UnsignedByteType
+)
+defaultShadowTexture.colorSpace = NoColorSpace
+defaultShadowTexture.wrapS = defaultShadowTexture.wrapT = RepeatWrapping
+defaultShadowTexture.needsUpdate = true
 
 const noiseFunctions = /* glsl */ `
 float hash13(vec3 p) {
@@ -83,7 +98,49 @@ vec3 sampleTexture2DRotated(sampler2D map, vec2 uv, float textureScale, float ro
 float luma(vec3 color) {
     return dot(color, vec3(0.299, 0.587, 0.114));
 }
+
+vec3 buildStaticCameraForward(vec3 staticCameraPosition, vec3 staticCameraTarget) {
+    return normalize(staticCameraTarget - staticCameraPosition);
+}
+
+vec3 buildStaticCameraRight(vec3 forward, vec3 up) {
+    vec3 right = cross(forward, normalize(up));
+
+    if (dot(right, right) < 0.0001) {
+        right = cross(forward, vec3(0.0, 1.0, 0.0));
+    }
+
+    if (dot(right, right) < 0.0001) {
+        right = cross(forward, vec3(1.0, 0.0, 0.0));
+    }
+
+    return normalize(right);
+}
+
+vec3 worldToStaticView(vec3 worldVector, vec3 staticCameraPosition, vec3 staticCameraTarget, vec3 staticCameraUp) {
+    vec3 forward = buildStaticCameraForward(staticCameraPosition, staticCameraTarget);
+    vec3 right = buildStaticCameraRight(forward, staticCameraUp);
+    vec3 up = normalize(cross(right, forward));
+
+    return vec3(
+        dot(worldVector, right),
+        dot(worldVector, up),
+        dot(worldVector, -forward)
+    );
+}
 `
+
+const toVector3 = (value, fallback) => {
+    if (value instanceof Vector3) {
+        return value.clone()
+    }
+
+    if (Array.isArray(value)) {
+        return new Vector3(value[0] ?? fallback.x, value[1] ?? fallback.y, value[2] ?? fallback.z)
+    }
+
+    return fallback.clone()
+}
 
 class CartoonBlobFiberMaterial extends MeshStandardMaterial {
     constructor(options = {}) {
@@ -104,6 +161,14 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         const fiberOffset = options.fiberOffset ?? 0.12
         const fiberRotationStep = options.fiberRotationStep ?? 0.35
         const fiberThreshold = options.fiberThreshold ?? 0.3
+        const useStaticCamera = options.useStaticCamera ?? false
+        const customShadowTexture = options.shadowTexture ?? defaultShadowTexture
+        const shadowStrength = options.shadowStrength ?? 0.85
+        const staticCameraPosition = toVector3(options.staticCameraPosition, new Vector3(0, 0, 10))
+        const staticCameraTarget = toVector3(options.staticCameraTarget, new Vector3(0, 0, 0))
+        const staticCameraUp = toVector3(options.staticCameraUp, new Vector3(0, 1, 0))
+        const worldZStart = options.worldZStart ?? 0
+        const worldZEnd = options.worldZEnd ?? 10
         const cameraNear = options.cameraNear ?? 0.1
         const cameraFar = options.cameraFar ?? 1000
         const materialOptions = { ...options }
@@ -123,6 +188,14 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         delete materialOptions.fiberOffset
         delete materialOptions.fiberRotationStep
         delete materialOptions.fiberThreshold
+        delete materialOptions.useStaticCamera
+        delete materialOptions.shadowTexture
+        delete materialOptions.shadowStrength
+        delete materialOptions.staticCameraPosition
+        delete materialOptions.staticCameraTarget
+        delete materialOptions.staticCameraUp
+        delete materialOptions.worldZStart
+        delete materialOptions.worldZEnd
         delete materialOptions.cameraNear
         delete materialOptions.cameraFar
 
@@ -150,11 +223,19 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             fiberOffset: { value: fiberOffset },
             fiberRotationStep: { value: fiberRotationStep },
             fiberThreshold: { value: fiberThreshold },
+            useStaticCamera: { value: useStaticCamera },
+            shadowTexture: { value: customShadowTexture },
+            shadowStrength: { value: shadowStrength },
+            staticCameraPosition: { value: staticCameraPosition },
+            staticCameraTarget: { value: staticCameraTarget },
+            staticCameraUp: { value: staticCameraUp },
+            worldZStart: { value: worldZStart },
+            worldZEnd: { value: worldZEnd },
             cameraNear: { value: cameraNear },
             cameraFar: { value: cameraFar },
         }
 
-        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v6'
+        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v7'
 
         this.onBeforeRender = (_renderer, _scene, camera) => {
             if (camera instanceof PerspectiveCamera) {
@@ -175,7 +256,14 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
                 '#include <common>',
                 `#include <common>
 varying vec3 vWorldPosition;
+varying vec3 vWorldNormal;
 varying vec2 vSurfaceUv;`
+            )
+
+            shader.vertexShader = shader.vertexShader.replace(
+                '#include <defaultnormal_vertex>',
+                `#include <defaultnormal_vertex>
+vWorldNormal = normalize(inverseTransformDirection(transformedNormal, viewMatrix));`
             )
 
             shader.vertexShader = shader.vertexShader.replace(
@@ -205,9 +293,18 @@ uniform float fiberInfluence;
 uniform float fiberOffset;
 uniform float fiberRotationStep;
 uniform float fiberThreshold;
+uniform bool useStaticCamera;
+uniform sampler2D shadowTexture;
+uniform float shadowStrength;
+uniform vec3 staticCameraPosition;
+uniform vec3 staticCameraTarget;
+uniform vec3 staticCameraUp;
+uniform float worldZStart;
+uniform float worldZEnd;
 uniform float cameraNear;
 uniform float cameraFar;
 varying vec3 vWorldPosition;
+varying vec3 vWorldNormal;
 varying vec2 vSurfaceUv;
 ${noiseFunctions}`
             )

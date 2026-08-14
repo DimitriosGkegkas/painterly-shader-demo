@@ -1,9 +1,11 @@
 import React from 'react'
 import { button, useControls } from 'leva'
+import { createPortal } from 'react-dom'
 import { assetUrl } from '../../utils/assetUrl'
 
 type PlaneMaterialControlsValue = {
     textureUrl: string
+    useMaterialShader: boolean
     color: {
         r: number
         g: number
@@ -74,6 +76,10 @@ export function PlaneMaterialControlsProvider({
     })
 
     const tintControls = useControls('Plane Material', {
+        useMaterialShader: {
+            value: false,
+            label: 'Use Material Shader',
+        },
         red: {
             value: 1,
             min: 0,
@@ -93,22 +99,24 @@ export function PlaneMaterialControlsProvider({
             step: 0.01,
         },
     }) as {
+        useMaterialShader: boolean
         red: number
         green: number
         blue: number
     }
-    const { red, green, blue } = tintControls
+    const { useMaterialShader, red, green, blue } = tintControls
 
     const value = React.useMemo(
         () => ({
             textureUrl,
+            useMaterialShader,
             color: {
                 r: red,
                 g: green,
                 b: blue,
             },
         }),
-        [blue, green, red, textureUrl]
+        [blue, green, red, textureUrl, useMaterialShader]
     )
 
     return (
@@ -116,13 +124,18 @@ export function PlaneMaterialControlsProvider({
             <PlaneMaterialControlsContext.Provider value={value}>
                 {children}
             </PlaneMaterialControlsContext.Provider>
-            <input
-                ref={inputRef}
-                hidden
-                type='file'
-                accept='image/*'
-                onChange={handleTextureChange}
-            />
+            {typeof document !== 'undefined'
+                ? createPortal(
+                      <input
+                          ref={inputRef}
+                          hidden
+                          type='file'
+                          accept='image/*'
+                          onChange={handleTextureChange}
+                      />,
+                      document.body
+                  )
+                : null}
         </>
     )
 }

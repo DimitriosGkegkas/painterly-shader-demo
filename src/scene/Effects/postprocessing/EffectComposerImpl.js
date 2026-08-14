@@ -1,6 +1,6 @@
 import { SRGBColorSpace } from 'three'
-import { EffectComposer as EffectComposerImpl, EffectPass, NormalPass, RenderPass, SMAAEffect } from 'postprocessing'
-import { ColorChannelEffect, DrawEffect, PencilLinesEffect } from './effects'
+import { EffectComposer as EffectComposerImpl, EffectPass, RenderPass, SMAAEffect } from 'postprocessing'
+import { ColorChannelEffect, DrawEffect } from './effects'
 
 class EffectComposer extends EffectComposerImpl {
     constructor(renderer, options) {
@@ -15,34 +15,25 @@ class EffectComposer extends EffectComposerImpl {
         this.drawEffect = new DrawEffect()
         this.drawPass = new EffectPass(this.camera, this.drawEffect)
 
-        this.pencilLinesEffect = new PencilLinesEffect()
-        this.pencilLinesNormalPass = new NormalPass(this.scene, this.camera)
-        this.pencilLinesEffect.setSurfaceBuffer(this.pencilLinesNormalPass.texture)
-        this.pencilLinesPass = new EffectPass(this.camera, this.pencilLinesEffect)
-
         this.colorChannelEffect = new ColorChannelEffect()
         this.colorChannelPass = new EffectPass(this.camera, this.colorChannelEffect)
 
         this.addPass(this.renderPass)
         this.addPass(this.colorChannelPass)
         this.addPass(this.drawPass)
-        this.addPass(this.pencilLinesNormalPass)
-        this.addPass(this.pencilLinesPass)
 
         renderer.outputColorSpace = SRGBColorSpace
         this.smaaPass.outputColorSpace = 'srgb'
 
-        this.setEffectMode('draw')
+        this.setDrawEffectEnabled(true)
     }
 
     setOptions(options) {
         this.drawEffect.setOptions(options)
-        this.pencilLinesEffect.setOptions(options)
     }
 
     getEffect(effectMode) {
         if (effectMode === 'draw') return this.drawEffect
-        if (effectMode === 'pencilLines') return this.pencilLinesEffect
         return null
     }
 
@@ -55,20 +46,12 @@ class EffectComposer extends EffectComposerImpl {
         this.colorChannelEffect.setChannel(channel)
     }
 
-    setEffectMode(mode = 'draw') {
-        const effectMode = mode ?? 'draw'
-        const isDraw = effectMode === 'draw'
-        const isPencilLines = effectMode === 'pencilLines'
-        const hasStylizedEffect = isDraw || isPencilLines
-
-        this.drawPass.enabled = isDraw
-        this.pencilLinesNormalPass.enabled = isPencilLines
-        this.pencilLinesPass.enabled = isPencilLines
-
+    setDrawEffectEnabled(enabled = true) {
+        const isDrawEnabled = Boolean(enabled)
         this.renderPass.renderToScreen = false
-        this.colorChannelPass.renderToScreen = !hasStylizedEffect
-        this.drawPass.renderToScreen = isDraw
-        this.pencilLinesPass.renderToScreen = isPencilLines
+        this.colorChannelPass.renderToScreen = !isDrawEnabled
+        this.drawPass.enabled = isDrawEnabled
+        this.drawPass.renderToScreen = isDrawEnabled
     }
 }
 

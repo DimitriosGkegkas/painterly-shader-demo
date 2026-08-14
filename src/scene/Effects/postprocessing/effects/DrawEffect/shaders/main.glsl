@@ -57,7 +57,7 @@ void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) 
 
     // Set final ink color based on the selected region
     vec3 finalInk = inkColor;
-    finalInk = vec3(0.3725, 0.1255, 0.0392); // Dark brown color for ink
+    finalInk = vec3(0.0, 0., 0.0); // Dark brown color for ink
 
     
 
@@ -67,7 +67,7 @@ void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) 
     fragColor.rgb = paper.rgb;
     fragColor.a = 1.0;
 
-    vec2 offsetUV = vUv + vec2(-0.005, -0.005);
+    vec2 offsetUV = vUv + vec2(-0.003, -0.005);
     float edgeIntensity = texture(inputBuffer, offsetUV).g;
 
     // make edgeIntensity from 0.0 to 1.0 
@@ -75,8 +75,12 @@ void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) 
     
     // Add edge detection
 
+float inkMask = clamp(1.0 - inputColor.b, 0.0, 1.0);
+vec3 low = 2.0 * fragColor.rgb * finalInk;
+vec3 high = 1.0 - 4.0 * (1.0 - fragColor.rgb) * (1.0 - finalInk);
+vec3 texturedInk = mix(low, high, step(0.5, fragColor.rgb));
+fragColor.rgb = mix(fragColor.rgb, texturedInk, inkMask);
 
-    fragColor.rgb = blend(fragColor.rgb, finalInk,  1.0 - inputColor.b);
 
     float edgeAcc = edgeIntensity * sobelFloatSmooth(inputBuffer, offsetUV, size, 1., 0.2, 0.1);
     fragColor.rgb = blend(fragColor.rgb, finalInk, edgeAcc); 

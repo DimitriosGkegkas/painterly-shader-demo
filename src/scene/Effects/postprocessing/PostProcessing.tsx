@@ -12,8 +12,6 @@ type PostProcessingProps = {
     renderPriority?: number
 }
 
-type EffectMode = 'none' | 'draw' | 'pencilLines'
-
 const rgbToCssColor = (r: number, g: number, b: number) =>
     `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`
 
@@ -28,28 +26,13 @@ const DRAW_DEFAULTS = {
     useSketchTexture: true,
 }
 
-const PENCIL_DEFAULTS = {
-    thickness: 1,
-    contour: 1,
-    scale: 0.55,
-    noisiness: 0.004,
-    inkColor: rgbToCssColor(82, 31, 51),
-    useNoiseTexture: true,
-    useSketchTexture: true,
-}
-
 const PostProcessing = React.memo(
     ({ enabled = true, renderPriority = 1, multisampling = 8, frameBufferType = HalfFloatType }: PostProcessingProps) => {
         const { gl, scene, camera, size } = useThree()
-        const effectPath = 'Post Processing.effect'
         const controls = useControls('Post Processing', {
-            effect: {
-                value: 'draw',
-                options: {
-                    none: 'none',
-                    draw: 'draw',
-                    'pencil lines': 'pencilLines',
-                },
+            drawEffect: {
+                value: true,
+                label: 'Draw Effect',
             },
             colorChannel: {
                 value: 'all',
@@ -68,8 +51,6 @@ const PostProcessing = React.memo(
                 label: 'Paper Texture',
             },
         })
-
-        const selectedEffect = controls.effect as EffectMode
 
         const composer = useMemo(() => {
             const effectComposer = new EffectComposerImpl(gl, {
@@ -100,17 +81,12 @@ const PostProcessing = React.memo(
         )
 
         useEffect(() => {
-            composer.setEffectMode(selectedEffect)
-        }, [composer, selectedEffect])
+            composer.setDrawEffectEnabled(controls.drawEffect)
+        }, [composer, controls.drawEffect])
 
         useEffect(() => {
             composer.setEffectParams('draw', {
                 ...DRAW_DEFAULTS,
-                usePaperTexture: controls.usePaperTexture,
-            })
-
-            composer.setEffectParams('pencilLines', {
-                ...PENCIL_DEFAULTS,
                 usePaperTexture: controls.usePaperTexture,
             })
         }, [
