@@ -49,7 +49,6 @@ float getAppear(vec2 vUv) {
     return smoothstep(0.01, 0.02, distanceFromCanvasBorder(tmp));
 }
 
-// Main fragment shader function
 void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) {
     vec2 size = vec2(textureSize(inputBuffer, 0));
     // Apply final blending with paper texture and ink color

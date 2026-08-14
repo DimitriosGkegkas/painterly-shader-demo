@@ -15,7 +15,7 @@ import { assetUrl } from '../../../../utils/assetUrl.js'
 
 const textureLoader = new TextureLoader()
 
-const fiberTexture = textureLoader.load(assetUrl('assets/textures/brush/Paint-Brush_normal.png'))
+const fiberTexture = textureLoader.load(assetUrl('assets/textures/brush/height_map.png'))
 fiberTexture.wrapS = fiberTexture.wrapT = RepeatWrapping
 fiberTexture.colorSpace = NoColorSpace
 
@@ -33,6 +33,17 @@ const defaultShadowTexture = new DataTexture(
 defaultShadowTexture.colorSpace = NoColorSpace
 defaultShadowTexture.wrapS = defaultShadowTexture.wrapT = RepeatWrapping
 defaultShadowTexture.needsUpdate = true
+
+const defaultLightTexture = new DataTexture(
+    new Uint8Array([0, 0, 0, 255]),
+    1,
+    1,
+    RGBAFormat,
+    UnsignedByteType
+)
+defaultLightTexture.colorSpace = NoColorSpace
+defaultLightTexture.wrapS = defaultLightTexture.wrapT = RepeatWrapping
+defaultLightTexture.needsUpdate = true
 
 const noiseFunctions = /* glsl */ `
 float hash13(vec3 p) {
@@ -144,9 +155,12 @@ const toVector3 = (value, fallback) => {
 
 class CartoonBlobFiberMaterial extends MeshStandardMaterial {
     constructor(options = {}) {
-        const inkColor = options.inkColor ?? new Color(0.08, 0.12, 0.22)
-        const outlineColor = options.outlineColor ?? new Color(0.02, 0.95, 0.82)
-        const backgroundColor = options.backgroundColor ?? new Color(0.97, 0.96, 0.93)
+        const backgroundLight = options.backgroundLight ?? 0.95
+        const backgroundColor = new Color(
+            backgroundLight,
+            backgroundLight,
+            backgroundLight
+        )
         const roughness = options.roughness ?? 0.85
         const metalness = options.metalness ?? 0.05
         const edgeStart = options.edgeStart ?? 0.28
@@ -155,42 +169,38 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         const edgeNoiseStrength = options.edgeNoiseStrength ?? 0.09
         const customFiberTexture = options.fiberTexture ?? fiberTexture
         const customNoiseTexture = options.noiseTexture ?? defaultNoiseTexture
-        const noiseScale = options.noiseScale ?? 1
         const fiberScale = options.fiberScale ?? 0.1
-        const fiberInfluence = options.fiberInfluence ?? 1
-        const fiberOffset = options.fiberOffset ?? 0.12
-        const fiberRotationStep = options.fiberRotationStep ?? 0.35
-        const fiberThreshold = options.fiberThreshold ?? 0.3
+        const noiseScale = options.noiseScale ?? 1
+        const bandCount = options.bandCount ?? 5
+        const bandSoftness = options.bandSoftness ?? 0.12
+        const bandTextureInfluence = options.bandTextureInfluence ?? 0.35
         const useStaticCamera = options.useStaticCamera ?? false
         const customShadowTexture = options.shadowTexture ?? defaultShadowTexture
-        const shadowStrength = options.shadowStrength ?? 0.85
+        const customLightTexture = options.lightTexture ?? defaultLightTexture
         const staticCameraPosition = toVector3(options.staticCameraPosition, new Vector3(0, 0, 10))
         const staticCameraTarget = toVector3(options.staticCameraTarget, new Vector3(0, 0, 0))
         const staticCameraUp = toVector3(options.staticCameraUp, new Vector3(0, 1, 0))
         const worldZStart = options.worldZStart ?? 0
         const worldZEnd = options.worldZEnd ?? 10
         const cameraNear = options.cameraNear ?? 0.1
-        const cameraFar = options.cameraFar ?? 1000
+        const cameraFar = options.cameraFar ?? 10
         const materialOptions = { ...options }
 
-        delete materialOptions.inkColor
-        delete materialOptions.outlineColor
-        delete materialOptions.backgroundColor
+        delete materialOptions.backgroundLight
         delete materialOptions.edgeStart
         delete materialOptions.edgeEnd
         delete materialOptions.edgeNoiseScale
         delete materialOptions.edgeNoiseStrength
         delete materialOptions.fiberTexture
         delete materialOptions.noiseTexture
-        delete materialOptions.noiseScale
         delete materialOptions.fiberScale
-        delete materialOptions.fiberInfluence
-        delete materialOptions.fiberOffset
-        delete materialOptions.fiberRotationStep
-        delete materialOptions.fiberThreshold
+        delete materialOptions.noiseScale
+        delete materialOptions.bandCount
+        delete materialOptions.bandSoftness
+        delete materialOptions.bandTextureInfluence
         delete materialOptions.useStaticCamera
         delete materialOptions.shadowTexture
-        delete materialOptions.shadowStrength
+        delete materialOptions.lightTexture
         delete materialOptions.staticCameraPosition
         delete materialOptions.staticCameraTarget
         delete materialOptions.staticCameraUp
@@ -207,25 +217,20 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         })
 
         this.uniforms = {
-            time: { value: 0 },
-            inkColor: { value: inkColor },
-            outlineColor: { value: outlineColor },
-            backgroundColor: { value: backgroundColor },
             edgeStart: { value: edgeStart },
             edgeEnd: { value: edgeEnd },
             edgeNoiseScale: { value: edgeNoiseScale },
             edgeNoiseStrength: { value: edgeNoiseStrength },
             fiberTexture: { value: customFiberTexture },
             noiseTexture: { value: customNoiseTexture },
-            noiseScale: { value: noiseScale },
             fiberScale: { value: fiberScale },
-            fiberInfluence: { value: fiberInfluence },
-            fiberOffset: { value: fiberOffset },
-            fiberRotationStep: { value: fiberRotationStep },
-            fiberThreshold: { value: fiberThreshold },
+            noiseScale: { value: noiseScale },
+            bandCount: { value: bandCount },
+            bandSoftness: { value: bandSoftness },
+            bandTextureInfluence: { value: bandTextureInfluence },
             useStaticCamera: { value: useStaticCamera },
             shadowTexture: { value: customShadowTexture },
-            shadowStrength: { value: shadowStrength },
+            lightTexture: { value: customLightTexture },
             staticCameraPosition: { value: staticCameraPosition },
             staticCameraTarget: { value: staticCameraTarget },
             staticCameraUp: { value: staticCameraUp },
@@ -235,7 +240,7 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             cameraFar: { value: cameraFar },
         }
 
-        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v7'
+        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v16'
 
         this.onBeforeRender = (_renderer, _scene, camera) => {
             if (camera instanceof PerspectiveCamera) {
@@ -277,25 +282,20 @@ vSurfaceUv = uv;`
             shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <common>',
                 `#include <common>
-uniform float time;
-uniform vec3 inkColor;
-uniform vec3 outlineColor;
-uniform vec3 backgroundColor;
 uniform float edgeStart;
 uniform float edgeEnd;
 uniform float edgeNoiseScale;
 uniform float edgeNoiseStrength;
 uniform sampler2D fiberTexture;
 uniform sampler2D noiseTexture;
-uniform float noiseScale;
 uniform float fiberScale;
-uniform float fiberInfluence;
-uniform float fiberOffset;
-uniform float fiberRotationStep;
-uniform float fiberThreshold;
+uniform float noiseScale;
+uniform float bandCount;
+uniform float bandSoftness;
+uniform float bandTextureInfluence;
 uniform bool useStaticCamera;
 uniform sampler2D shadowTexture;
-uniform float shadowStrength;
+uniform sampler2D lightTexture;
 uniform vec3 staticCameraPosition;
 uniform vec3 staticCameraTarget;
 uniform vec3 staticCameraUp;

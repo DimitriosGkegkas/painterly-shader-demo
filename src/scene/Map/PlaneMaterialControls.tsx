@@ -1,19 +1,25 @@
 import React from 'react'
 import { button, useControls } from 'leva'
-import { createPortal } from 'react-dom'
 import { assetUrl } from '../../utils/assetUrl'
+
+export type FiberMaterialControlsValue = {
+    backgroundLight: number
+    edgeNoiseStrength: number
+    edgeStart: number
+    edgeEnd: number
+    fiberScale: number
+    noiseScale: number
+    bandCount: number
+    bandSoftness: number
+    bandTextureInfluence: number
+}
 
 type PlaneMaterialControlsValue = {
     textureUrl: string
-    useMaterialShader: boolean
-    color: {
-        r: number
-        g: number
-        b: number
-    }
+    fiberMaterial: FiberMaterialControlsValue
 }
 
-const defaultTextureName = 'texture_atlas_no_red_v1.png'
+const defaultTextureName = 'ground-path-inverted.png'
 const defaultTextureUrl = assetUrl(defaultTextureName)
 
 const PlaneMaterialControlsContext =
@@ -24,119 +30,171 @@ export function PlaneMaterialControlsProvider({
 }: {
     children: React.ReactNode
 }) {
-    const inputRef = React.useRef<HTMLInputElement>(null)
-    const objectUrlRef = React.useRef<string | null>(null)
-    const [textureUrl, setTextureUrl] = React.useState(defaultTextureUrl)
-
-    const openTexturePicker = React.useCallback(() => {
-        inputRef.current?.click()
-    }, [])
-
-    const resetTexture = React.useCallback(() => {
-        if (objectUrlRef.current) {
-            URL.revokeObjectURL(objectUrlRef.current)
-            objectUrlRef.current = null
-        }
-
-        setTextureUrl(defaultTextureUrl)
-    }, [])
-
-    const handleTextureChange = React.useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const file = event.target.files?.[0]
-
-            if (!file) {
-                return
-            }
-
-            const nextObjectUrl = URL.createObjectURL(file)
-
-            if (objectUrlRef.current) {
-                URL.revokeObjectURL(objectUrlRef.current)
-            }
-
-            objectUrlRef.current = nextObjectUrl
-            setTextureUrl(nextObjectUrl)
-            event.target.value = ''
+    const defaultTextureObjectUrlRef = React.useRef<string | null>(null)
+    const [
+        {
+            textureImage,
+            backgroundLight,
+            edgeNoiseStrength,
+            edgeStart,
+            edgeEnd,
+            fiberScale,
+            noiseScale,
+            bandCount,
+            bandSoftness,
+            bandTextureInfluence,
         },
+        setControls,
+        getControls,
+    ] = useControls(
+        'Plane Material',
+        () => ({
+            textureImage: { image: undefined as string | undefined },
+            backgroundLight: {
+                value: 0.15,
+                min: 0,
+                max: 0.5,
+                step: 0.005,
+            },
+            edgeNoiseStrength: {
+                value: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            edgeStart: {
+                value: 0.28,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            edgeEnd: {
+                value: 0.28,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            fiberScale: {
+                value: 3,
+                min: 0.1,
+                max: 20,
+                step: 0.1,
+            },
+            noiseScale: {
+                value: 1,
+                min: 0.1,
+                max: 20,
+                step: 0.1,
+            },
+            bandCount: {
+                value: 5,
+                min: 1,
+                max: 12,
+                step: 1,
+            },
+            bandSoftness: {
+                value: 0.12,
+                min: 0,
+                max: 0.5,
+                step: 0.01,
+            },
+            bandTextureInfluence: {
+                value: 0.35,
+                min: 0,
+                max: 10,
+                step: 0.2,
+            },
+        }),
         []
     )
 
-    React.useEffect(() => {
-        return () => {
-            if (objectUrlRef.current) {
-                URL.revokeObjectURL(objectUrlRef.current)
-            }
-        }
-    }, [])
+    const resetTexture = React.useCallback(() => {
+        setControls({
+            textureImage: defaultTextureObjectUrlRef.current ?? undefined,
+        })
+    }, [setControls])
 
     useControls('Plane Material', {
-        uploadTexture: button(openTexturePicker),
         resetTexture: button(resetTexture),
     })
 
-    const tintControls = useControls('Plane Material', {
-        useMaterialShader: {
-            value: false,
-            label: 'Use Material Shader',
-        },
-        red: {
-            value: 1,
-            min: 0,
-            max: 2,
-            step: 0.01,
-        },
-        green: {
-            value: 1,
-            min: 0,
-            max: 2,
-            step: 0.01,
-        },
-        blue: {
-            value: 0.7,
-            min: 0,
-            max: 2,
-            step: 0.01,
-        },
-    }) as {
-        useMaterialShader: boolean
-        red: number
-        green: number
-        blue: number
-    }
-    const { useMaterialShader, red, green, blue } = tintControls
+    React.useEffect(() => {
+        let isCancelled = false
+
+        const initializeDefaultTexturePreview = async () => {
+            try {
+                const response = await fetch(defaultTextureUrl)
+                const blob = await response.blob()
+
+                if (isCancelled) {
+                    return
+                }
+
+                const nextObjectUrl = URL.createObjectURL(blob)
+
+                if (defaultTextureObjectUrlRef.current) {
+                    URL.revokeObjectURL(defaultTextureObjectUrlRef.current)
+                }
+
+                defaultTextureObjectUrlRef.current = nextObjectUrl
+
+                if (!getControls('textureImage')) {
+                    setControls({ textureImage: nextObjectUrl })
+                }
+            } catch {
+                return
+            }
+        }
+
+        initializeDefaultTexturePreview()
+
+        return () => {
+            isCancelled = true
+
+            if (defaultTextureObjectUrlRef.current) {
+                URL.revokeObjectURL(defaultTextureObjectUrlRef.current)
+                defaultTextureObjectUrlRef.current = null
+            }
+        }
+    }, [getControls, setControls])
+
+    const fiberMaterial = React.useMemo<FiberMaterialControlsValue>(
+        () => ({
+            backgroundLight,
+            edgeNoiseStrength,
+            edgeStart,
+            edgeEnd,
+            fiberScale,
+            noiseScale,
+            bandCount,
+            bandSoftness,
+            bandTextureInfluence,
+        }),
+        [
+            bandCount,
+            bandSoftness,
+            bandTextureInfluence,
+            backgroundLight,
+            edgeEnd,
+            edgeNoiseStrength,
+            edgeStart,
+            fiberScale,
+            noiseScale,
+        ]
+    )
 
     const value = React.useMemo(
         () => ({
-            textureUrl,
-            useMaterialShader,
-            color: {
-                r: red,
-                g: green,
-                b: blue,
-            },
+            textureUrl: textureImage ?? defaultTextureUrl,
+            fiberMaterial,
         }),
-        [blue, green, red, textureUrl, useMaterialShader]
+        [fiberMaterial, textureImage]
     )
 
     return (
-        <>
-            <PlaneMaterialControlsContext.Provider value={value}>
-                {children}
-            </PlaneMaterialControlsContext.Provider>
-            {typeof document !== 'undefined'
-                ? createPortal(
-                      <input
-                          ref={inputRef}
-                          hidden
-                          type='file'
-                          accept='image/*'
-                          onChange={handleTextureChange}
-                      />,
-                      document.body
-                  )
-                : null}
-        </>
+        <PlaneMaterialControlsContext.Provider value={value}>
+            {children}
+        </PlaneMaterialControlsContext.Provider>
     )
 }
 

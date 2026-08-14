@@ -72,17 +72,15 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
     const material = useMemo(
         () =>
             new CartoonBlobFiberMaterial({
-                inkColor: new THREE.Color(0.5, 0, 1),
-                outlineColor: new THREE.Color(0.5, 0, 0),
-                backgroundColor: new THREE.Color(0.5, 0.0, 0),
+                backgroundLight: 0.18,
                 edgeNoiseStrength: 0,
-                edgeStart: 0.28,
-                edgeEnd: 0.28,
-                fiberScale: 3,
-                fiberInfluence: 1,
-                fiberRotationStep: 0.1,
-                fiberThreshold: 0.3,
-                noiseScale: 10.0,
+                edgeStart: 0.3,
+                edgeEnd: 0.6,
+                fiberScale: 30,
+                bandCount: 5,
+                bandSoftness: 0.4,
+                bandTextureInfluence: 1.5,
+                noiseScale: 20,
             }),
         []
     )
@@ -90,23 +88,21 @@ export default function MetohologioSceneV3(props: JSX.IntrinsicElements['group']
     const groundMaterial = useMemo(
         () =>
             new CartoonBlobFiberMaterial({
-                inkColor: new THREE.Color(0.5, 0, 1),
-                outlineColor: new THREE.Color(0.5, 0, 0),
-                backgroundColor: new THREE.Color(0.5, 0.0, 0),
+                backgroundLight: 0.15,
                 edgeNoiseStrength: 0,
-                edgeStart: 0.28,
-                edgeEnd: 0.28,
-                fiberScale: 3,
-                fiberInfluence: 1,
-                fiberRotationStep: 0.1,
-                fiberThreshold: 0.3,
+                edgeStart: 0.0,
+                edgeEnd: 1.0,
                 useStaticCamera: true,
                 shadowTexture: groundShadowTexture,
                 staticCameraPosition: [0, 10, 10],
                 staticCameraTarget: [0, 0, 0],
                 worldZStart: 0,
                 worldZEnd: 10,
-                noiseScale: 20.0,
+                fiberScale: 10,
+                bandCount: 5,
+                bandSoftness: 0.5,
+                bandTextureInfluence: 2,
+                                noiseScale: 10,
             }),
         [groundShadowTexture]
     )

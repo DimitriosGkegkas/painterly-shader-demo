@@ -9,6 +9,7 @@ import type { SceneModel } from '../../App'
 import MetohologioSceneV2 from '../Map/MetohologioSceneV2'
 import MetohologioSceneV3 from '../Map/MetohologioSceneV3'
 import DebugPlanes from '../Map/DebugPlanes'
+import { OrbitControls } from '@react-three/drei'
 
 type ExperienceProps = Omit<ComponentProps<typeof Canvas>, 'children'> & {
     model: SceneModel
@@ -33,7 +34,11 @@ function Experience({ model, ...props }: ExperienceProps) {
                     {model === 'debug' && <DebugPlanes />}
                 </group>
             </Suspense>
-            <ScrollCameraController />
+            {
+                model === 'debug' ?
+                    <OrbitControls enablePan={true} enableZoom={true} enableRotate={false} />
+                    : <ScrollCameraController />
+            }
             <ambientLight intensity={10} />
             <directionalLight
                 position={[8, 12, 6]}

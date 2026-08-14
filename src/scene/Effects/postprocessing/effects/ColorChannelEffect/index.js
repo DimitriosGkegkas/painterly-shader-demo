@@ -5,7 +5,16 @@ const fragmentShader = /* glsl */ `
     uniform vec3 channelMask;
 
     void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-        outputColor = vec4(inputColor.rgb * channelMask, inputColor.a);
+        outputColor = inputColor;
+        if (channelMask.x == 0.0) {
+            outputColor.r = 1.0;
+        }
+        if (channelMask.y == 0.0) {
+            outputColor.g = 1.0;
+        }
+        if (channelMask.z == 0.0) {
+            outputColor.b = 1.0;
+        }
     }
 `
 
