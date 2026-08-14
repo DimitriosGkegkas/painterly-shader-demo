@@ -1,11 +1,9 @@
-vec3 blur3x3(sampler2D src, vec2 uv, vec2 texelSize) {
-    vec3 result = vec3(0.0);
-    for (int dx = -1; dx <= 1; ++dx) {
-        for (int dy = -1; dy <= 1; ++dy) {
-            result += texture(src, uv + vec2(float(dx), float(dy)) * texelSize).rgb;
-        }
-    }
-    return result / 9.0;
+float sampleEdgeSignal(sampler2D src, vec2 uv) {
+    vec3 color = texture(src, uv).rgb;
+
+    // Disabled channels are forced to 1.0 upstream, so "darkness from white"
+    // gives a stable scalar edge signal regardless of the selected channel mask.
+    return color.r;
 }
 
 float sobelFloatSmooth(
@@ -18,27 +16,27 @@ float sobelFloatSmooth(
 ) {
     float x = width / resolution.x;
     float y = width / resolution.y;
-    vec2 offset = vec2(x, y);
+    vec2 texel = vec2(x, y);
 
-    float horiz = 0.0;
-    float vert = 0.0;
+    float s00 = sampleEdgeSignal(src, uv + vec2(-texel.x, -texel.y));
+    float s10 = sampleEdgeSignal(src, uv + vec2(0.0, -texel.y));
+    float s20 = sampleEdgeSignal(src, uv + vec2(texel.x, -texel.y));
+    float s01 = sampleEdgeSignal(src, uv + vec2(-texel.x, 0.0));
+    float s21 = sampleEdgeSignal(src, uv + vec2(texel.x, 0.0));
+    float s02 = sampleEdgeSignal(src, uv + vec2(-texel.x, texel.y));
+    float s12 = sampleEdgeSignal(src, uv + vec2(0.0, texel.y));
+    float s22 = sampleEdgeSignal(src, uv + vec2(texel.x, texel.y));
 
-    for (int i = -1; i <= 1; ++i) {
-        for (int j = -1; j <= 1; ++j) {
-            vec2 sampleUv = uv + vec2(float(i) * x, float(j) * y);
-            vec3 blurred = blur3x3(src, sampleUv, offset);
-            // float lum = dot(blurred, vec3(0.299, 0.587, 0.114));
-            float lum = blurred.r; // Use the red channel for edge detection
+    // Scharr gives better rotational symmetry than Sobel and already includes
+    // smoothing in the orthogonal direction, so the extra 3x3 pre-blur is unnecessary.
+    float horiz =
+        3.0 * s00 + 10.0 * s01 + 3.0 * s02 -
+        3.0 * s20 - 10.0 * s21 - 3.0 * s22;
+    float vert =
+        3.0 * s00 + 10.0 * s10 + 3.0 * s20 -
+        3.0 * s02 - 10.0 * s12 - 3.0 * s22;
 
-            float hWeight = float(i) * (j == 0 ? 2.0 : 1.0);
-            float vWeight = float(j) * (i == 0 ? 2.0 : 1.0);
-
-            horiz += lum * hWeight;
-            vert += lum * vWeight;
-        }
-    }
-
-    float gradient = sqrt(horiz * horiz + vert * vert);
+    float gradient = length(vec2(horiz, vert)) / 32.0;
 
     return smoothstep(threshold - softness, threshold + softness, gradient);
 }

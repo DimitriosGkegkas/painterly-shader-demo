@@ -8,6 +8,10 @@ float depth01 = clamp(
     1.0
 );
 
+float orientation = 0.0;
+vec3 n = normalize(surfaceViewNormal);
+
+
 if (useStaticCamera) {
     vec3 surfaceWorldNormal = normalize(vWorldNormal) * (gl_FrontFacing ? 1.0 : -1.0);
     float shadowTextureValue = clamp(luma(texture(shadowTexture, vSurfaceUv).rgb), 0.0, 1.0);
@@ -21,25 +25,20 @@ if (useStaticCamera) {
             staticCameraUp
         )
     );
+    n = normalize(surfaceViewNormal);
 
     materialLightIntensity = clamp(
         materialLightIntensity + shadowTextureValue - 1.0,
         0.0,
         1.0
     );
-
-    depth01 = clamp(
-        (vWorldPosition.z - worldZStart) / max(abs(worldZRange), 0.0001),
-        0.0,
-        1.0
-    );
-    if (worldZRange < 0.0) {
-        depth01 = 1.0 - depth01;
-    }
 }
 
 if (disableEdgeNormals) {
     surfaceViewNormal = vec3(0.0, 0.0, 1.0);
+
+    n = normalize(vWorldNormal);
+
 }
 
 float fiberValue = sampleTexture2DRotated(
@@ -73,8 +72,24 @@ if (bandCount > 1.0) {
 }
 
 float edge = smoothstep(edgeStart, edgeEnd, (1.0 - abs(surfaceViewNormal.z)));
+
+
+
 float edgeOrientation = fract(atan(surfaceViewNormal.y, surfaceViewNormal.x) / 6.28318530718 + 1.0);
 if(abs(surfaceViewNormal.x) < 0.0001 && abs(surfaceViewNormal.y) < 0.0001) {
     edgeOrientation = 0.0;
 }
-gl_FragColor.rgb = vec3(depth01 + edge * edgeOrientation, noiseValue, quantizedLight - edge);
+
+float theta = atan(n.z, n.x); // -PI .. PI
+if (n.x < 0.001 && n.z < 0.001) {
+    theta = 0.0;
+}
+float phi   = asin(n.y);      // -PI/2 .. PI/2
+theta = abs(theta); // 0 .. PI
+phi   = abs(phi);   // 0 .. PI/2
+float theta01 = abs(theta) / PI;
+float phi01   = abs(phi) / (PI * 0.5);
+
+orientation = 2.0 * theta01 + phi01;
+
+gl_FragColor.rgb = vec3(depth01 + 2.0 * orientation, noiseValue, quantizedLight - edge);

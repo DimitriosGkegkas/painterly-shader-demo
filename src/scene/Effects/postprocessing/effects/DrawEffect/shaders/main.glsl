@@ -67,7 +67,7 @@ void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) 
     fragColor.a = 1.0;
 
     vec2 offsetUV = vUv + vec2(-0.003, -0.005);
-    float edgeIntensity = texture(inputBuffer, offsetUV).g;
+    float edgeIntensity = sampleEdgeSignal(inputBuffer, offsetUV);
 
     // make edgeIntensity from 0.0 to 1.0 
     edgeIntensity = clamp(edgeIntensity, 0.0, 1.0);
@@ -81,8 +81,7 @@ vec3 texturedInk = mix(low, high, step(0.5, fragColor.rgb));
 fragColor.rgb = mix(fragColor.rgb, texturedInk, inkMask);
 
 
-    float edgeAcc = edgeIntensity * sobelFloatSmooth(inputBuffer, offsetUV, size, 1., 0.2, 0.1);
+    float edgeAcc = edgeIntensity * sobelFloatSmooth(inputBuffer, offsetUV, size, 1., 0.2, 0.0);
     fragColor.rgb = blend(fragColor.rgb, finalInk, edgeAcc); 
-
     fragColor.rgb = srgbToLinear(fragColor.rgb, 2.2);
 }
