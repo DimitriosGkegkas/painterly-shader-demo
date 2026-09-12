@@ -5,7 +5,7 @@ import { Canvas } from '@react-three/fiber'
 import { PostProcessing } from '../Effects/postprocessing/PostProcessing'
 import { Perf } from 'r3f-perf'
 import ScrollCameraController from './controllers/ScrollCameraController'
-import type { SceneModel } from '../../App'
+import type { CameraControl, SceneModel } from '../../App'
 import MetohologioSceneV2 from '../Map/MetohologioSceneV2'
 import MetohologioSceneV3 from '../Map/MetohologioSceneV3'
 import DebugPlanes from '../Map/DebugPlanes'
@@ -13,9 +13,10 @@ import { OrbitControls } from '@react-three/drei'
 
 type ExperienceProps = Omit<ComponentProps<typeof Canvas>, 'children'> & {
     model: SceneModel
+    cameraControl: CameraControl
 }
 
-function Experience({ model, ...props }: ExperienceProps) {
+function Experience({ model, cameraControl, ...props }: ExperienceProps) {
     return (
         <Canvas
             {...props}
@@ -34,12 +35,15 @@ function Experience({ model, ...props }: ExperienceProps) {
                     {model === 'debug' && <DebugPlanes />}
                 </group>
             </Suspense>
-            {
-                model === 'v3' ?
-                    <ScrollCameraController />
-                    : model === 'debug' ? <OrbitControls enablePan={true} enableZoom={true} enableRotate={false} /> 
-                    : <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
-            }
+            {cameraControl === 'path' && model === 'v3' ? (
+                <ScrollCameraController />
+            ) : (
+                <OrbitControls
+                    enablePan={true}
+                    enableZoom={true}
+                    enableRotate={model !== 'debug'}
+                />
+            )}
             <ambientLight intensity={10} />
             <directionalLight
                 position={[8, 12, 6]}

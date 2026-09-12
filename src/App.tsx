@@ -4,20 +4,29 @@ import { useControls } from 'leva'
 import { PlaneMaterialControlsProvider } from './scene/Map/PlaneMaterialControls'
 
 export type SceneModel = 'v2' | 'v3' | 'debug'
+export type CameraControl = 'orbit' | 'path'
 
 function App() {
-    const { model } = useControls('Scene', {
+    const { model, cameraControl } = useControls('Scene', {
         model: {
             value: 'v3' as SceneModel,
             options: {
-                'Scene': 'v3',
+                Scene: 'v3',
                 'Plane House': 'v2',
-                'Debug': 'debug',
+                Debug: 'debug',
             },
         },
-    }) as { model: SceneModel }
+        cameraControl: {
+            label: 'Camera Control',
+            value: 'path' as CameraControl,
+            options: {
+                Orbit: 'orbit',
+                Path: 'path',
+            },
+        },
+    }) as { model: SceneModel; cameraControl: CameraControl }
 
-    const content = <Experience model={model} />
+    const content = <Experience model={model} cameraControl={cameraControl} />
     const shouldUsePlaneMaterialControls = model === 'debug' || model === 'v2'
 
     return (
