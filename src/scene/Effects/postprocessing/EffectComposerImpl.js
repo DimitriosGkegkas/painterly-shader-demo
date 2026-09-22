@@ -1,5 +1,5 @@
 import { SRGBColorSpace } from 'three'
-import { EffectComposer as EffectComposerImpl, EffectPass, RenderPass, SMAAEffect, SMAAPreset } from 'postprocessing'
+import { EffectComposer as EffectComposerImpl, EffectPass, RenderPass, SMAAEffect, SMAAPreset, EdgeDetectionMode } from 'postprocessing'
 import { ColorChannelEffect, DrawEffect } from './effects'
 
 class EffectComposer extends EffectComposerImpl {
@@ -8,7 +8,7 @@ class EffectComposer extends EffectComposerImpl {
 
         this.renderPass = new RenderPass(this.scene, this.camera)
 
-        this.smaaEffect = new SMAAEffect({ preset: SMAAPreset.HIGH })
+        this.smaaEffect = new SMAAEffect({ preset: SMAAPreset.HIGH, edgeDetectionMode: EdgeDetectionMode.LUMA })
         this.smaaPass = new EffectPass(this.camera, this.smaaEffect)
 
         this.drawEffect = new DrawEffect()
