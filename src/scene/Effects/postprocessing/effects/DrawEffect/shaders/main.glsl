@@ -52,18 +52,27 @@ float getAppear(vec2 vUv) {
 void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) {
     vec2 size = vec2(textureSize(inputBuffer, 0));
     // Apply final blending with paper texture and ink color
-    vec4 paper = usePaperTexture ? texture(paperTexture, vUv * 0.5) : vec4(1.0);
+    vec4 paper = usePaperTexture ? texture(paperTexture, vUv) : vec4(1.0);
 
-    // Set final ink color based on the selected region
-    vec3 finalInk = inkColor;
-    finalInk = vec3(0.0, 0., 0.0); // Dark brown color for ink
+    // Texture strength controls grain; inkMask controls how densely the color builds up.
+    float textureStrength = 10.0;
+    float paperMidpoint = 0.734; // Approximate average sRGB brightness of Craft_Light.jpg.
+    // RGB swatch values are sRGB: decode them before blending in linear RGB.
+    vec3 washColorSRGB = vec3(0.51, 0.22, 0.05);
+    vec3 finalInk = srgbToLinearExact(washColorSRGB);
+    vec3 outlineColor = vec3(0.0);
 
-    
+    float inkMask = clamp(1.0 - inputColor.b, 0.0, 1.0);
+    // Five density levels, including bare paper (0) and full ink (1).
+    // float inkBandCount = 5.0;
+    // float inkBandSteps = max(inkBandCount - 1.0, 1.0);
+    // inkMask = round(inkMask * inkBandSteps) / inkBandSteps;
 
-    float appearColor = getAppear(vUv);
+    vec3 texturedInk = getTextureInk(
+        paper.rgb, finalInk, usePaperTexture ? textureStrength : 0.0, paperMidpoint, inkMask
+    );
 
-
-    fragColor.rgb = paper.rgb;
+    fragColor.rgb = texturedInk;
     fragColor.a = 1.0;
 
     vec2 offsetUV = vUv + vec2(-0.003, -0.005);
@@ -71,17 +80,10 @@ void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) 
 
     // make edgeIntensity from 0.0 to 1.0 
     edgeIntensity = clamp(edgeIntensity, 0.0, 1.0);
-    
-    // Add edge detection
-
-float inkMask = clamp(1.0 - inputColor.b, 0.0, 1.0);
-vec3 low = 2.0 * fragColor.rgb * finalInk;
-vec3 high = 1.0 - 4.0 * (1.0 - fragColor.rgb) * (1.0 - finalInk);
-vec3 texturedInk = mix(low, high, step(0.5, fragColor.rgb));
-fragColor.rgb = mix(fragColor.rgb, texturedInk, inkMask);
-
 
     float edgeAcc = edgeIntensity * sobelFloatSmooth(inputBuffer, offsetUV, size, 1., 0.2, 0.0);
-    fragColor.rgb = blend(fragColor.rgb, finalInk, edgeAcc); 
-    fragColor.rgb = srgbToLinear(fragColor.rgb, 2.2);
+    // Dark pen outlines are independent of the translucent brown wash.
+    fragColor.rgb = mix(fragColor.rgb, outlineColor, clamp(edgeAcc, 0.0, 1.0));
+
+    
 }

@@ -1,4 +1,4 @@
-import { RepeatWrapping, TextureLoader, Uniform } from 'three'
+import { RepeatWrapping, SRGBColorSpace, TextureLoader, Uniform } from 'three'
 import { DRAW_DEFAULTS, DRAW_TEXTURE_PATHS, createDefaultInkColor, colorToHex } from './defaults'
 
 const textureLoader = new TextureLoader()
@@ -24,6 +24,9 @@ function createDrawUniforms() {
     const noiseTexture = loadRepeatingTexture(DRAW_TEXTURE_PATHS.noise)
     const sketchTexture = loadRepeatingTexture(DRAW_TEXTURE_PATHS.sketch)
     const paperTexture = loadRepeatingTexture(DRAW_TEXTURE_PATHS.paper)
+    // The paper JPEG stores sRGB colors; sampling decodes them to linear RGB.
+    paperTexture.colorSpace = SRGBColorSpace
+    paperTexture.needsUpdate = true
 
     return new Map([
         ['thickness', new Uniform(DRAW_DEFAULTS.thickness)],
