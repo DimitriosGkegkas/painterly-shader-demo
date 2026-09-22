@@ -23,7 +23,9 @@ class DrawEffect extends Effect {
     return readDrawParams(this.uniforms)
   }
 
-  update(_renderer, _inputBuffer, deltaTime) {
+  update(renderer, _inputBuffer, deltaTime) {
+    // Logical (CSS) pixels keep edge sampling independent of render resolution/DPR.
+    renderer.getSize(this.uniforms.get('edgeViewportSize').value)
     stepDrawTime(this.uniforms, deltaTime)
   }
 }

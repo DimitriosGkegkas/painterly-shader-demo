@@ -9,14 +9,14 @@ float sampleEdgeSignal(sampler2D src, vec2 uv) {
 float sobelFloatSmooth(
     sampler2D src,
     vec2 uv,
-    vec2 resolution,
-    float width,
+    vec2 viewportSizeCSS,
+    float radiusCSS,
     float threshold,
     float softness
 ) {
-    float x = width / resolution.x;
-    float y = width / resolution.y;
-    vec2 texel = vec2(x, y);
+    // A fixed distance on the page spans more render texels on a high-DPR display.
+    float sampleRadiusCSS = max(radiusCSS, 0.0001);
+    vec2 texel = vec2(sampleRadiusCSS) / max(viewportSizeCSS, vec2(1.0));
 
     float s00 = sampleEdgeSignal(src, uv + vec2(-texel.x, -texel.y));
     float s10 = sampleEdgeSignal(src, uv + vec2(0.0, -texel.y));
@@ -36,8 +36,12 @@ float sobelFloatSmooth(
         3.0 * s00 + 10.0 * s10 + 3.0 * s20 -
         3.0 * s02 - 10.0 * s12 - 3.0 * s22;
 
-    float gradient = length(vec2(horiz, vert)) / 32.0;
+    // Normalize both the Scharr weights and sample spacing. For a linear ramp,
+    // this measures signal change per CSS pixel regardless of radius or DPR.
+    float gradient = length(vec2(horiz, vert)) / (32.0 * sampleRadiusCSS);
 
+    // Equal smoothstep edges are undefined in GLSL. Use step for a hard cutoff.
+    if (softness <= 0.0) return step(threshold, gradient);
     return smoothstep(threshold - softness, threshold + softness, gradient);
 }
 

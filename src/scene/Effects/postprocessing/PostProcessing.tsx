@@ -29,6 +29,7 @@ const DRAW_DEFAULTS = {
 const PostProcessing = React.memo(
     ({ enabled = true, renderPriority = 1, multisampling = 8, frameBufferType = HalfFloatType }: PostProcessingProps) => {
         const { gl, scene, camera, size } = useThree()
+        const dpr = useThree((state) => state.viewport.dpr)
         const controls = useControls('Post Processing', {
             drawEffect: {
                 value: true,
@@ -69,7 +70,7 @@ const PostProcessing = React.memo(
 
         useEffect(() => {
             composer.setSize(size.width, size.height)
-        }, [composer, size.height, size.width])
+        }, [composer, size.height, size.width, dpr])
 
         useFrame(
             (_, delta) => {

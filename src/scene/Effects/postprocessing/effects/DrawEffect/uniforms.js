@@ -1,4 +1,4 @@
-import { RepeatWrapping, SRGBColorSpace, TextureLoader, Uniform } from 'three'
+import { RepeatWrapping, SRGBColorSpace, TextureLoader, Uniform, Vector2 } from 'three'
 import { DRAW_DEFAULTS, DRAW_TEXTURE_PATHS, createDefaultInkColor, colorToHex } from './defaults'
 
 const textureLoader = new TextureLoader()
@@ -31,6 +31,7 @@ function createDrawUniforms() {
     return new Map([
         ['thickness', new Uniform(DRAW_DEFAULTS.thickness)],
         ['size', new Uniform(DRAW_DEFAULTS.size)],
+        ['edgeViewportSize', new Uniform(new Vector2(1, 1))],
         ['noisiness', new Uniform(DRAW_DEFAULTS.noisiness)],
         ['inkColor', new Uniform(createDefaultInkColor())],
         ['scale', new Uniform(DRAW_DEFAULTS.scale)],
