@@ -81,9 +81,9 @@ void mainImage(const in vec4 inputColor, const in vec2 vUv, out vec4 fragColor) 
     // make edgeIntensity from 0.0 to 1.0 
     edgeIntensity = clamp(edgeIntensity, 0.0, 1.0);
 
-    float edgeRadiusCSS = 1.0;
-    float edgeThreshold = 0.2; // Signal change per CSS pixel.
-    float edgeSoftness = 0.03;
+    float edgeRadiusCSS = 0.1;
+    float edgeThreshold = 0.3; // Signal change per CSS pixel.
+    float edgeSoftness = 0.9;
     float edgeAcc = edgeIntensity * sobelFloatSmooth(
         inputBuffer, offsetUV, edgeViewportSize, edgeRadiusCSS, edgeThreshold, edgeSoftness
     );

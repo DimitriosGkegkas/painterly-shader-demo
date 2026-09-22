@@ -35,6 +35,10 @@ const PostProcessing = React.memo(
                 value: true,
                 label: 'Draw Effect',
             },
+            antialiasing: {
+                value: true,
+                label: 'Antialiasing (SMAA)',
+            },
             colorChannel: {
                 value: 'all',
                 options: {
@@ -84,6 +88,10 @@ const PostProcessing = React.memo(
         useEffect(() => {
             composer.setDrawEffectEnabled(controls.drawEffect)
         }, [composer, controls.drawEffect])
+
+        useEffect(() => {
+            composer.setAntialiasingEnabled(controls.antialiasing)
+        }, [composer, controls.antialiasing])
 
         useEffect(() => {
             composer.setEffectParams('draw', {

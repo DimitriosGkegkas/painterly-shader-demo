@@ -1,5 +1,5 @@
 import { SRGBColorSpace } from 'three'
-import { EffectComposer as EffectComposerImpl, EffectPass, RenderPass, SMAAEffect } from 'postprocessing'
+import { EffectComposer as EffectComposerImpl, EffectPass, RenderPass, SMAAEffect, SMAAPreset } from 'postprocessing'
 import { ColorChannelEffect, DrawEffect } from './effects'
 
 class EffectComposer extends EffectComposerImpl {
@@ -8,9 +8,8 @@ class EffectComposer extends EffectComposerImpl {
 
         this.renderPass = new RenderPass(this.scene, this.camera)
 
-        this.smaaEffect = new SMAAEffect()
+        this.smaaEffect = new SMAAEffect({ preset: SMAAPreset.HIGH })
         this.smaaPass = new EffectPass(this.camera, this.smaaEffect)
-        this.smaaEffect.samples = 4
 
         this.drawEffect = new DrawEffect()
         this.drawPass = new EffectPass(this.camera, this.drawEffect)
@@ -21,9 +20,10 @@ class EffectComposer extends EffectComposerImpl {
         this.addPass(this.renderPass)
         this.addPass(this.colorChannelPass)
         this.addPass(this.drawPass)
+        // Smooth the final ink outlines after the draw shader has created them.
+        this.addPass(this.smaaPass)
 
         renderer.outputColorSpace = SRGBColorSpace
-        this.smaaPass.outputColorSpace = 'srgb'
 
         this.setDrawEffectEnabled(true)
     }
@@ -47,11 +47,21 @@ class EffectComposer extends EffectComposerImpl {
     }
 
     setDrawEffectEnabled(enabled = true) {
-        const isDrawEnabled = Boolean(enabled)
+        this.drawPass.enabled = Boolean(enabled)
+        this.updateOutputPass()
+    }
+
+    setAntialiasingEnabled(enabled = true) {
+        this.smaaPass.enabled = Boolean(enabled)
+        this.updateOutputPass()
+    }
+
+    updateOutputPass() {
+        // Exactly one enabled pass presents the image, including when toggling effects.
         this.renderPass.renderToScreen = false
-        this.colorChannelPass.renderToScreen = !isDrawEnabled
-        this.drawPass.enabled = isDrawEnabled
-        this.drawPass.renderToScreen = isDrawEnabled
+        this.colorChannelPass.renderToScreen = !this.drawPass.enabled && !this.smaaPass.enabled
+        this.drawPass.renderToScreen = this.drawPass.enabled && !this.smaaPass.enabled
+        this.smaaPass.renderToScreen = this.smaaPass.enabled
     }
 }
 

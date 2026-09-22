@@ -38,7 +38,7 @@ float sobelFloatSmooth(
 
     // Normalize both the Scharr weights and sample spacing. For a linear ramp,
     // this measures signal change per CSS pixel regardless of radius or DPR.
-    float gradient = length(vec2(horiz, vert)) / (32.0 * sampleRadiusCSS);
+    float gradient = length(vec2(horiz, vert)) / (64.0 * sampleRadiusCSS);
 
     // Equal smoothstep edges are undefined in GLSL. Use step for a hard cutoff.
     if (softness <= 0.0) return step(threshold, gradient);
