@@ -1,10 +1,13 @@
 import { SRGBColorSpace } from 'three'
 import { EffectComposer as EffectComposerImpl, EffectPass, RenderPass, SMAAEffect, SMAAPreset, EdgeDetectionMode } from 'postprocessing'
 import { ColorChannelEffect, DrawEffect } from './effects'
+import { CHANNEL_MASKS } from './effects/ColorChannelEffect'
 
 class EffectComposer extends EffectComposerImpl {
     constructor(renderer, options) {
         super(renderer, options)
+        this.autoRenderToScreen = false
+        this.colorChannel = 'all'
 
         this.renderPass = new RenderPass(this.scene, this.camera)
 
@@ -43,7 +46,10 @@ class EffectComposer extends EffectComposerImpl {
     }
 
     setColorChannel(channel) {
-        this.colorChannelEffect.setChannel(channel)
+        this.colorChannel = CHANNEL_MASKS[channel] ? channel : 'all'
+        this.colorChannelEffect.setChannel(this.colorChannel)
+        this.drawEffect.uniforms.get('channelMask').value.fromArray(CHANNEL_MASKS[this.colorChannel])
+        this.updateOutputPass()
     }
 
     setDrawEffectEnabled(enabled = true) {
@@ -57,11 +63,16 @@ class EffectComposer extends EffectComposerImpl {
     }
 
     updateOutputPass() {
-        // Exactly one enabled pass presents the image, including when toggling effects.
-        this.renderPass.renderToScreen = false
-        this.colorChannelPass.renderToScreen = !this.drawPass.enabled && !this.smaaPass.enabled
-        this.drawPass.renderToScreen = this.drawPass.enabled && !this.smaaPass.enabled
-        this.smaaPass.renderToScreen = this.smaaPass.enabled
+        // DrawEffect applies the channel mask itself, including its neighbor samples.
+        // Keep a final color-conversion pass when both effects are off: the custom
+        // material writes linear data channels after Three's usual color conversion.
+        this.colorChannelPass.enabled = !this.drawPass.enabled &&
+            (this.colorChannel !== 'all' || !this.smaaPass.enabled)
+        const enabledPasses = this.passes.filter((pass) => pass.enabled)
+        const outputPass = enabledPasses[enabledPasses.length - 1]
+        for (const pass of this.passes) {
+            pass.renderToScreen = pass === outputPass
+        }
     }
 }
 

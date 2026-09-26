@@ -1,4 +1,4 @@
-import { Effect } from 'postprocessing'
+import { Effect, EffectAttribute } from 'postprocessing'
 import fragmentShader from './shaders'
 import { applyDrawParams, createDrawUniforms, readDrawParams, stepDrawTime } from './uniforms'
 
@@ -6,9 +6,8 @@ class DrawEffect extends Effect {
   constructor() {
     super('DrawEffect', fragmentShader, {
       uniforms: createDrawUniforms(),
+      attributes: EffectAttribute.CONVOLUTION,
     })
-
-    this.needsDepthTexture = true
   }
 
   setOptions(options) {
@@ -21,6 +20,11 @@ class DrawEffect extends Effect {
 
   getParams() {
     return readDrawParams(this.uniforms)
+  }
+
+  dispose() {
+    this.uniforms.get('paperTexture').value.dispose()
+    super.dispose()
   }
 
   update(renderer, _inputBuffer, deltaTime) {

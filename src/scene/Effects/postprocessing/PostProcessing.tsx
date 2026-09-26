@@ -1,14 +1,14 @@
 import { HalfFloatType } from 'three'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { isWebGL2Available } from 'three-stdlib'
 import { EffectComposer as EffectComposerImpl } from './EffectComposerImpl'
 import { useControls } from 'leva'
+import { resolveMultisampling } from './antialiasing'
 
 type PostProcessingProps = {
     enabled?: boolean
     frameBufferType?: number
-    multisampling?: number
+    multisampling?: number | 'auto'
     renderPriority?: number
 }
 
@@ -27,13 +27,21 @@ const DRAW_DEFAULTS = {
 }
 
 const PostProcessing = React.memo(
-    ({ enabled = true, renderPriority = 1, multisampling = 8, frameBufferType = HalfFloatType }: PostProcessingProps) => {
+    ({ enabled = true, renderPriority = 1, multisampling = 'auto', frameBufferType = HalfFloatType }: PostProcessingProps) => {
         const { gl, scene, camera, size } = useThree()
         const dpr = useThree((state) => state.viewport.dpr)
+        const samples = resolveMultisampling(dpr, multisampling, gl.capabilities.maxSamples)
         const controls = useControls('Post Processing', {
             drawEffect: {
                 value: true,
                 label: 'Draw Effect',
+            },
+            appearance: {
+                value: 1,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                label: 'Appearance',
             },
             antialiasing: {
                 value: true,
@@ -57,54 +65,64 @@ const PostProcessing = React.memo(
             },
         })
 
-        const composer = useMemo(() => {
+        const [composer, setComposer] = useState<EffectComposerImpl | null>(null)
+
+        // Allocate GPU resources in an effect so StrictMode's discarded render cannot leak them.
+        useEffect(() => {
             const effectComposer = new EffectComposerImpl(gl, {
-                multisampling: multisampling > 0 && isWebGL2Available() ? multisampling : 0,
                 frameBufferType,
-                antialias: true,
             })
 
             effectComposer.setMainCamera(camera)
             effectComposer.setMainScene(scene)
 
-            return effectComposer
-        }, [camera, frameBufferType, gl, multisampling, scene])
-
-        useEffect(() => () => composer.dispose(), [composer])
+            setComposer(effectComposer)
+            return () => effectComposer.dispose()
+        }, [camera, frameBufferType, gl, scene])
 
         useEffect(() => {
-            composer.setSize(size.width, size.height)
+            // Change only the render buffers when density changes; retain effects,
+            // their uniforms, and their shader programs. SMAA remains independent.
+            if (composer && composer.multisampling !== samples) {
+                composer.multisampling = samples
+            }
+        }, [composer, samples])
+
+        useEffect(() => {
+            composer?.setSize(size.width, size.height)
         }, [composer, size.height, size.width, dpr])
 
         useFrame(
             (_, delta) => {
                 if (enabled) {
-                    composer.render(delta)
+                    composer?.render(delta)
                 }
             },
             enabled ? renderPriority : 0
         )
 
         useEffect(() => {
-            composer.setDrawEffectEnabled(controls.drawEffect)
+            composer?.setDrawEffectEnabled(controls.drawEffect)
         }, [composer, controls.drawEffect])
 
         useEffect(() => {
-            composer.setAntialiasingEnabled(controls.antialiasing)
+            composer?.setAntialiasingEnabled(controls.antialiasing)
         }, [composer, controls.antialiasing])
 
         useEffect(() => {
-            composer.setEffectParams('draw', {
+            composer?.setEffectParams('draw', {
                 ...DRAW_DEFAULTS,
+                appearance: controls.appearance,
                 usePaperTexture: controls.usePaperTexture,
             })
         }, [
             composer,
+            controls.appearance,
             controls.usePaperTexture,
         ])
 
         useEffect(() => {
-            composer.setColorChannel(controls.colorChannel)
+            composer?.setColorChannel(controls.colorChannel)
         }, [composer, controls.colorChannel])
 
         return null

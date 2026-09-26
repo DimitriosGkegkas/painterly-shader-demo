@@ -22,15 +22,6 @@ export default function TextureComparisonPlanes({
     const blueGradientMaterial = useMemo(
         () =>
             new CartoonBlobFiberMaterial({
-                backgroundLight: fiberMaterial.backgroundLight,
-                edgeNoiseStrength: fiberMaterial.edgeNoiseStrength,
-                edgeStart: fiberMaterial.edgeStart,
-                edgeEnd: fiberMaterial.edgeEnd,
-                fiberScale: fiberMaterial.fiberScale,
-                noiseScale: fiberMaterial.noiseScale,
-                bandCount: fiberMaterial.bandCount,
-                bandSoftness: fiberMaterial.bandSoftness,
-                bandTextureInfluence: fiberMaterial.bandTextureInfluence,
                 useStaticCamera: true,
                 shadowTexture,
                 staticCameraPosition: [0, 0, 10],
@@ -39,7 +30,7 @@ export default function TextureComparisonPlanes({
                 worldZEnd: 1,
                 side: THREE.DoubleSide,
             }),
-        [fiberMaterial, shadowTexture]
+        [shadowTexture]
     )
 
     const plainBlueGradientMaterial = useMemo(
@@ -52,12 +43,11 @@ export default function TextureComparisonPlanes({
         [displayTexture]
     )
 
-    React.useEffect(() => {
-        return () => {
-            blueGradientMaterial.dispose()
-            plainBlueGradientMaterial.dispose()
-        }
-    }, [blueGradientMaterial, plainBlueGradientMaterial])
+    React.useLayoutEffect(() => {
+        blueGradientMaterial.setParams(fiberMaterial)
+    }, [blueGradientMaterial, fiberMaterial])
+    React.useEffect(() => () => blueGradientMaterial.dispose(), [blueGradientMaterial])
+    React.useEffect(() => () => plainBlueGradientMaterial.dispose(), [plainBlueGradientMaterial])
 
     return (
         <group name='texture_comparison_planes' {...props}>

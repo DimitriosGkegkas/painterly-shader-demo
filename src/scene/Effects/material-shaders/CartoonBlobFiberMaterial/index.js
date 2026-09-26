@@ -2,6 +2,7 @@ import {
     Color,
     DataTexture,
     MeshStandardMaterial,
+    Matrix3,
     NoColorSpace,
     PerspectiveCamera,
     RGBAFormat,
@@ -34,99 +35,9 @@ defaultShadowTexture.colorSpace = NoColorSpace
 defaultShadowTexture.wrapS = defaultShadowTexture.wrapT = RepeatWrapping
 defaultShadowTexture.needsUpdate = true
 
-const noiseFunctions = /* glsl */ `
-float hash13(vec3 p) {
-    p = fract(p * 0.1031);
-    p += dot(p, p.yzx + 33.33);
-    return fract((p.x + p.y) * p.z);
-}
-
-float noise3d(vec3 p) {
-    vec3 i = floor(p);
-    vec3 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-
-    float n000 = hash13(i + vec3(0.0, 0.0, 0.0));
-    float n100 = hash13(i + vec3(1.0, 0.0, 0.0));
-    float n010 = hash13(i + vec3(0.0, 1.0, 0.0));
-    float n110 = hash13(i + vec3(1.0, 1.0, 0.0));
-    float n001 = hash13(i + vec3(0.0, 0.0, 1.0));
-    float n101 = hash13(i + vec3(1.0, 0.0, 1.0));
-    float n011 = hash13(i + vec3(0.0, 1.0, 1.0));
-    float n111 = hash13(i + vec3(1.0, 1.0, 1.0));
-
-    float nx00 = mix(n000, n100, f.x);
-    float nx10 = mix(n010, n110, f.x);
-    float nx01 = mix(n001, n101, f.x);
-    float nx11 = mix(n011, n111, f.x);
-    float nxy0 = mix(nx00, nx10, f.y);
-    float nxy1 = mix(nx01, nx11, f.y);
-
-    return mix(nxy0, nxy1, f.z);
-}
-
-float fbm3(vec3 p) {
-    float value = 0.0;
-    float amplitude = 0.5;
-
-    for (int i = 0; i < 4; i++) {
-        value += amplitude * noise3d(p);
-        p *= 2.02;
-        amplitude *= 0.5;
-    }
-
-    return value;
-}
-
-vec3 triplanarWeights(vec3 normal) {
-    vec3 weights = pow(abs(normal), vec3(4.0));
-    return weights / max(weights.x + weights.y + weights.z, 0.0001);
-}
-
-vec2 rotate2d(vec2 point, float angle) {
-    float s = sin(angle);
-    float c = cos(angle);
-    return mat2(c, -s, s, c) * point;
-}
-
-vec3 sampleTexture2DRotated(sampler2D map, vec2 uv, float textureScale, float rotation) {
-    vec2 scaledUv = (uv - 0.5) * textureScale;
-    vec2 rotatedUv = rotate2d(scaledUv, rotation) + 0.5;
-    return texture(map, rotatedUv).rgb;
-}
-
+const shaderHelpers = /* glsl */ `
 float luma(vec3 color) {
     return dot(color, vec3(0.299, 0.587, 0.114));
-}
-
-vec3 buildStaticCameraForward(vec3 staticCameraPosition, vec3 staticCameraTarget) {
-    return normalize(staticCameraTarget - staticCameraPosition);
-}
-
-vec3 buildStaticCameraRight(vec3 forward, vec3 up) {
-    vec3 right = cross(forward, normalize(up));
-
-    if (dot(right, right) < 0.0001) {
-        right = cross(forward, vec3(0.0, 1.0, 0.0));
-    }
-
-    if (dot(right, right) < 0.0001) {
-        right = cross(forward, vec3(1.0, 0.0, 0.0));
-    }
-
-    return normalize(right);
-}
-
-vec3 worldToStaticView(vec3 worldVector, vec3 staticCameraPosition, vec3 staticCameraTarget, vec3 staticCameraUp) {
-    vec3 forward = buildStaticCameraForward(staticCameraPosition, staticCameraTarget);
-    vec3 right = buildStaticCameraRight(forward, staticCameraUp);
-    vec3 up = normalize(cross(right, forward));
-
-    return vec3(
-        dot(worldVector, right),
-        dot(worldVector, up),
-        dot(worldVector, -forward)
-    );
 }
 `
 
@@ -152,8 +63,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         )
         const roughness = options.roughness ?? 0.85
         const metalness = options.metalness ?? 0.05
-        const edgeStart = options.edgeStart ?? 0.28
-        const edgeEnd = options.edgeEnd ?? 0.58
+        const edgeSmoothness = options.edgeSmoothness ?? 0.3
+        const edgeOffset = options.edgeOffset ?? 0.42
         const edgeNoiseScale = options.edgeNoiseScale ?? 1.15
         const edgeNoiseStrength = options.edgeNoiseStrength ?? 0.09
         const customFiberTexture = options.fiberTexture ?? fiberTexture
@@ -176,8 +87,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         const materialOptions = { ...options }
 
         delete materialOptions.backgroundLight
-        delete materialOptions.edgeStart
-        delete materialOptions.edgeEnd
+        delete materialOptions.edgeSmoothness
+        delete materialOptions.edgeOffset
         delete materialOptions.edgeNoiseScale
         delete materialOptions.edgeNoiseStrength
         delete materialOptions.fiberTexture
@@ -206,8 +117,8 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
         })
 
         this.uniforms = {
-            edgeStart: { value: edgeStart },
-            edgeEnd: { value: edgeEnd },
+            edgeSmoothness: { value: edgeSmoothness },
+            edgeOffset: { value: edgeOffset },
             edgeNoiseScale: { value: edgeNoiseScale },
             edgeNoiseStrength: { value: edgeNoiseStrength },
             fiberTexture: { value: customFiberTexture },
@@ -229,9 +140,19 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             cameraFar: { value: cameraFar },
         }
 
-        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v19'
+        this.uniforms.staticViewMatrix = { value: new Matrix3() }
+        this._staticPosition = new Vector3(Infinity, Infinity, Infinity)
+        this._staticTarget = new Vector3(Infinity, Infinity, Infinity)
+        this._staticUp = new Vector3(Infinity, Infinity, Infinity)
+        this._forward = new Vector3()
+        this._right = new Vector3()
+        this._up = new Vector3()
+        this.updateStaticViewMatrix()
+
+        this.customProgramCacheKey = () => 'CartoonBlobFiberMaterial_v21'
 
         this.onBeforeRender = (_renderer, _scene, camera) => {
+            if (this.uniforms.useStaticCamera.value) this.updateStaticViewMatrix()
             if (camera instanceof PerspectiveCamera) {
                 this.uniforms.cameraNear.value = camera.near
                 this.uniforms.cameraFar.value = camera.far
@@ -249,7 +170,6 @@ class CartoonBlobFiberMaterial extends MeshStandardMaterial {
             shader.vertexShader = shader.vertexShader.replace(
                 '#include <common>',
                 `#include <common>
-varying vec3 vWorldPosition;
 varying vec3 vWorldNormal;
 varying vec2 vSurfaceUv;`
             )
@@ -263,16 +183,14 @@ vWorldNormal = normalize(inverseTransformDirection(transformedNormal, viewMatrix
             shader.vertexShader = shader.vertexShader.replace(
                 '#include <begin_vertex>',
                 `#include <begin_vertex>
-vec4 customWorldPosition = modelMatrix * vec4(transformed, 1.0);
-vWorldPosition = customWorldPosition.xyz;
 vSurfaceUv = uv;`
             )
 
             shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <common>',
                 `#include <common>
-uniform float edgeStart;
-uniform float edgeEnd;
+uniform float edgeSmoothness;
+uniform float edgeOffset;
 uniform float edgeNoiseScale;
 uniform float edgeNoiseStrength;
 uniform sampler2D fiberTexture;
@@ -285,17 +203,14 @@ uniform float bandTextureInfluence;
 uniform bool useStaticCamera;
 uniform bool disableEdgeNormals;
 uniform sampler2D shadowTexture;
-uniform vec3 staticCameraPosition;
-uniform vec3 staticCameraTarget;
-uniform vec3 staticCameraUp;
+uniform mat3 staticViewMatrix;
 uniform float worldZStart;
 uniform float worldZEnd;
 uniform float cameraNear;
 uniform float cameraFar;
-varying vec3 vWorldPosition;
 varying vec3 vWorldNormal;
 varying vec2 vSurfaceUv;
-${noiseFunctions}`
+${shaderHelpers}`
             )
 
             shader.fragmentShader = shader.fragmentShader.replace(
@@ -309,6 +224,45 @@ ${noiseFunctions}`
                 fragmentDebugBlock
             )
         }
+    }
+
+    // Numeric controls only change existing uniform values; no material/program replacement.
+    setParams(params = {}) {
+        if (params.backgroundLight !== undefined) {
+            this.color.setRGB(params.backgroundLight, params.backgroundLight, params.backgroundLight)
+        }
+        for (const [name, value] of Object.entries(params)) {
+            const uniform = this.uniforms[name]
+            if (!uniform || value === undefined) continue
+            if (uniform.value instanceof Vector3) {
+                if (Array.isArray(value)) uniform.value.fromArray(value)
+                else uniform.value.copy(value)
+            } else {
+                uniform.value = value
+            }
+        }
+    }
+
+    updateStaticViewMatrix() {
+        const position = this.uniforms.staticCameraPosition.value
+        const target = this.uniforms.staticCameraTarget.value
+        const up = this.uniforms.staticCameraUp.value
+        if (this._staticPosition.equals(position) && this._staticTarget.equals(target) && this._staticUp.equals(up)) return
+        this._staticPosition.copy(position)
+        this._staticTarget.copy(target)
+        this._staticUp.copy(up)
+
+        const forward = this._forward.subVectors(target, position).normalize()
+        const right = this._right.crossVectors(forward, this._up.copy(up).normalize())
+        if (right.lengthSq() < 0.0001) right.crossVectors(forward, this._up.set(0, 1, 0))
+        if (right.lengthSq() < 0.0001) right.crossVectors(forward, this._up.set(1, 0, 0))
+        right.normalize()
+        const cameraUp = this._up.crossVectors(right, forward).normalize()
+        this.uniforms.staticViewMatrix.value.set(
+            right.x, right.y, right.z,
+            cameraUp.x, cameraUp.y, cameraUp.z,
+            -forward.x, -forward.y, -forward.z
+        )
     }
 }
 

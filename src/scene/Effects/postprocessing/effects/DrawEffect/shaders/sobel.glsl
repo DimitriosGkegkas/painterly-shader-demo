@@ -1,8 +1,7 @@
 float sampleEdgeSignal(sampler2D src, vec2 uv) {
     vec3 color = texture(src, uv).rgb;
 
-    // Disabled channels are forced to 1.0 upstream, so "darkness from white"
-    // gives a stable scalar edge signal regardless of the selected channel mask.
+    // Red stores the material's depth/orientation signal.
     return color.r;
 }
 
@@ -10,9 +9,7 @@ float sobelFloatSmooth(
     sampler2D src,
     vec2 uv,
     vec2 viewportSizeCSS,
-    float radiusCSS,
-    float threshold,
-    float softness
+    float radiusCSS
 ) {
     // A fixed distance on the page spans more render texels on a high-DPR display.
     float sampleRadiusCSS = max(radiusCSS, 0.0001);
@@ -40,13 +37,4 @@ float sobelFloatSmooth(
     // this measures signal change per CSS pixel regardless of radius or DPR.
     float gradient = length(vec2(horiz, vert)) / (64.0 * sampleRadiusCSS);
     return gradient;
-}
-
-vec3 diagonalBlur(sampler2D tex, vec2 uv, vec2 texelSize) {
-    vec3 sum = vec3(0.0);
-    sum += texture2D(tex, uv + texelSize).rgb;
-    sum += texture2D(tex, uv - texelSize).rgb;
-    sum += texture2D(tex, uv + vec2(texelSize.x, -texelSize.y)).rgb;
-    sum += texture2D(tex, uv + vec2(-texelSize.x, texelSize.y)).rgb;
-    return sum / 4.0;
 }

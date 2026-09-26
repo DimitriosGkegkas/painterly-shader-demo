@@ -178,9 +178,9 @@ vec3 getTextureInk(vec3 paperColor, vec3 inkColor, float textureStrength, float 
     // sqrt(paper * denseInk), giving richer midtones than an opacity blend.
     // The small offset keeps black channels well-defined and the transition continuous.
     vec3 colorFloor = vec3(0.00001);
-    vec3 paperContribution = pow(paperColor + colorFloor, vec3(1.0 - inkDensity));
-    vec3 inkContribution = pow(denseInkColor + colorFloor, vec3(inkDensity));
-    return max(paperContribution * inkContribution - colorFloor, vec3(0.0));
+    vec3 paperBase = paperColor + colorFloor;
+    vec3 inkRatio = (denseInkColor + colorFloor) / paperBase;
+    return max(paperBase * pow(inkRatio, vec3(inkDensity)) - colorFloor, vec3(0.0));
 }
 
 // Helper function to calculate quantized luma based on discrete levels

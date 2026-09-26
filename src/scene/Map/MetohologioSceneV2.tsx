@@ -5,9 +5,8 @@ Command: npx gltfjsx@6.5.3 public/Metohologio_example scene_v2.glb -o src/scene/
 
 import * as THREE from 'three'
 import React, { useMemo } from 'react'
-import { useGraph } from '@react-three/fiber'
-import { useGLTF, useAnimations, useTexture } from '@react-three/drei'
-import { GLTF, SkeletonUtils } from 'three-stdlib'
+import { useGLTF, useTexture } from '@react-three/drei'
+import { GLTF } from 'three-stdlib'
 import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
 import { usePlaneMaterialControls } from './PlaneMaterialControls'
 import { assetUrl } from '../../utils/assetUrl.js'
@@ -58,22 +57,8 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
 
   const { fiberMaterial, shadowTextureUrl } = controls
   const group = React.useRef<THREE.Group>(null)
-  const { scene, animations } = useGLTF(modelUrl)
-  const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
-  const { nodes } = useGraph(clone) as GLTFResult
-  const { actions } = useAnimations(animations, group)
+  const { nodes } = useGLTF(modelUrl) as unknown as GLTFResult
   const shadowTexture = useTexture(shadowTextureUrl)
-
-
-  React.useEffect(() => {
-    const activeActions = Object.values(actions)
-    activeActions.forEach((action) => action?.reset().play())
-
-    return () => {
-      activeActions.forEach((action) => action?.stop())
-    }
-  }, [actions])
-
 
   const wallMaterial = useMemo(() => {
     shadowTexture.flipY = false
@@ -83,15 +68,6 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
     shadowTexture.repeat.set(1, 1)
 
     return new CartoonBlobFiberMaterial({
-        backgroundLight: fiberMaterial.backgroundLight,
-        edgeNoiseStrength: fiberMaterial.edgeNoiseStrength,
-        edgeStart: fiberMaterial.edgeStart,
-        edgeEnd: fiberMaterial.edgeEnd,
-        fiberScale: fiberMaterial.fiberScale,
-        noiseScale: fiberMaterial.noiseScale,
-        bandCount: fiberMaterial.bandCount,
-        bandSoftness: fiberMaterial.bandSoftness,
-        bandTextureInfluence: fiberMaterial.bandTextureInfluence,
         useStaticCamera: true,
         shadowTexture,
         disableEdgeNormals: true,
@@ -99,8 +75,11 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
         worldZEnd: 10,
         side: THREE.DoubleSide
       })
-  }, [fiberMaterial, shadowTexture])
+  }, [shadowTexture])
 
+
+  React.useLayoutEffect(() => wallMaterial.setParams(fiberMaterial), [wallMaterial, fiberMaterial])
+  React.useEffect(() => () => wallMaterial.dispose(), [wallMaterial])
 
   return (
     <group castShadow receiveShadow ref={group} {...props} dispose={null}>

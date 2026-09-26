@@ -10,6 +10,7 @@
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "typecheck": "tsc --noEmit",
+    "test:rendering": "node scripts/check-rendering.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\" --config ./.prettierrc.json"
   },
   "dependencies": {

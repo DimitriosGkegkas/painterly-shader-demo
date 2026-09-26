@@ -82,14 +82,14 @@ export default function MetohologioSceneV3(
   const material = useMemo(
     () =>
       new CartoonBlobFiberMaterial({
-        backgroundLight: 0.18,
-        edgeNoiseStrength: 0,
-        edgeStart: 0.3,
-        edgeEnd: 0.6,
-        fiberScale: 30,
+        backgroundLight: 0.2,
+        edgeNoiseStrength: 0.0,
+        edgeSmoothness: 0.1,
+        edgeOffset: 0.5,
+        fiberScale: 2,
         bandCount: 5,
-        bandSoftness: 0.4,
-        bandTextureInfluence: 1.5,
+        bandSoftness: 1,
+        bandTextureInfluence: 5,
         noiseScale: 20,
       }),
     []
@@ -100,8 +100,8 @@ export default function MetohologioSceneV3(
       new CartoonBlobFiberMaterial({
         backgroundLight: 0.15,
         edgeNoiseStrength: 0,
-        edgeStart: 0.0,
-        edgeEnd: 1.0,
+        edgeSmoothness: 1.0,
+        edgeOffset: 0.0,
         useStaticCamera: true,
         shadowTexture: groundShadowTexture,
         staticCameraPosition: [0, 10, 10],
@@ -116,6 +116,11 @@ export default function MetohologioSceneV3(
       }),
     [groundShadowTexture]
   )
+
+  const wallMaterial = useMemo(() => new THREE.MeshStandardMaterial(), [])
+  React.useEffect(() => () => material.dispose(), [material])
+  React.useEffect(() => () => groundMaterial.dispose(), [groundMaterial])
+  React.useEffect(() => () => wallMaterial.dispose(), [wallMaterial])
 
   React.useEffect(() => {
     const activeActions = Object.values(actions)
@@ -180,7 +185,7 @@ export default function MetohologioSceneV3(
         </group>
         <mesh name="Barrel" castShadow receiveShadow geometry={nodes.Barrel.geometry} material={material} position={[3.226, -0.004, -11.089]} scale={0.555} />
         <mesh name="Ground" castShadow receiveShadow geometry={nodes.Ground.geometry} material={groundMaterial} position={[0, -0.848, 0.267]} scale={1.811} />
-        <mesh name="Wall" castShadow receiveShadow geometry={nodes.Wall.geometry} material={new THREE.MeshStandardMaterial()} />
+        <mesh name="Wall" castShadow receiveShadow geometry={nodes.Wall.geometry} material={wallMaterial} />
         <mesh name="Cube" castShadow receiveShadow geometry={nodes.Cube.geometry} material={material} scale={[0.052, 0.674, 0.06]} />
         <skinnedMesh name="Beard" castShadow receiveShadow geometry={nodes.Beard.geometry} material={material} skeleton={nodes.Beard.skeleton} />
         <skinnedMesh name="Priest_body_lod0_mesh" castShadow receiveShadow geometry={nodes.Priest_body_lod0_mesh.geometry} material={material} skeleton={nodes.Priest_body_lod0_mesh.skeleton} />
@@ -192,6 +197,10 @@ export default function MetohologioSceneV3(
         <skinnedMesh name="Grass005" castShadow receiveShadow geometry={nodes.Grass005.geometry} material={material} skeleton={nodes.Grass005.skeleton} position={[3.471, 0.065, -12.207]} rotation={[0, 0.672, 0]} scale={6.152} />
         <skinnedMesh name="Grass006" castShadow receiveShadow geometry={nodes.Grass006.geometry} material={material} skeleton={nodes.Grass006.skeleton} position={[2.596, 0.005, -11.713]} rotation={[0, 0.672, 0]} scale={3.694} />
         <skinnedMesh name="Grass007" castShadow receiveShadow geometry={nodes.Grass007.geometry} material={material} skeleton={nodes.Grass007.skeleton} position={[2.804, -0.009, -11.357]} rotation={[0, 0.133, 0]} scale={1.904} />
+
+        {/* <mesh material={material} castShadow receiveShadow position={[0, 2, 0]}>
+          <torusKnotGeometry args={[0.95, 0.32, 220, 32]} />
+        </mesh> */}
       </group>
     </group>
   )

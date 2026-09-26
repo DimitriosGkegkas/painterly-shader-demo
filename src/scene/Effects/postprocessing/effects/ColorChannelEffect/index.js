@@ -43,4 +43,4 @@ class ColorChannelEffect extends Effect {
     }
 }
 
-export { ColorChannelEffect }
+export { ColorChannelEffect, CHANNEL_MASKS }

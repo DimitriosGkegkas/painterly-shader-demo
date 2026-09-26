@@ -1,9 +1,10 @@
-import { RepeatWrapping, SRGBColorSpace, TextureLoader, Uniform, Vector2 } from 'three'
+import { RepeatWrapping, SRGBColorSpace, TextureLoader, Uniform, Vector2, Vector3 } from 'three'
 import { DRAW_DEFAULTS, DRAW_TEXTURE_PATHS, createDefaultInkColor, colorToHex } from './defaults'
 
 const textureLoader = new TextureLoader()
 
 const PARAM_UNIFORM_KEYS = {
+    appearance: 'appearance',
     thickness: 'thickness',
     noisiness: 'noisiness',
     scale: 'scale',
@@ -21,24 +22,22 @@ function loadRepeatingTexture(path) {
 }
 
 function createDrawUniforms() {
-    const noiseTexture = loadRepeatingTexture(DRAW_TEXTURE_PATHS.noise)
-    const sketchTexture = loadRepeatingTexture(DRAW_TEXTURE_PATHS.sketch)
     const paperTexture = loadRepeatingTexture(DRAW_TEXTURE_PATHS.paper)
     // The paper JPEG stores sRGB colors; sampling decodes them to linear RGB.
     paperTexture.colorSpace = SRGBColorSpace
     paperTexture.needsUpdate = true
 
     return new Map([
+        ['appearance', new Uniform(DRAW_DEFAULTS.appearance)],
         ['thickness', new Uniform(DRAW_DEFAULTS.thickness)],
         ['size', new Uniform(DRAW_DEFAULTS.size)],
         ['edgeViewportSize', new Uniform(new Vector2(1, 1))],
+        ['channelMask', new Uniform(new Vector3(1, 1, 1))],
         ['noisiness', new Uniform(DRAW_DEFAULTS.noisiness)],
         ['inkColor', new Uniform(createDefaultInkColor())],
         ['scale', new Uniform(DRAW_DEFAULTS.scale)],
         ['normalBuffer', new Uniform(null)],
         ['paperTexture', new Uniform(paperTexture)],
-        ['noiseTexture', new Uniform(noiseTexture)],
-        ['borderNoiseTexture', new Uniform(sketchTexture)],
         ['usePaperTexture', new Uniform(DRAW_DEFAULTS.usePaperTexture)],
         ['useNoiseTexture', new Uniform(DRAW_DEFAULTS.useNoiseTexture)],
         ['useSketchTexture', new Uniform(DRAW_DEFAULTS.useSketchTexture)],
@@ -63,6 +62,7 @@ function applyDrawParams(uniforms, params = {}) {
 
 function readDrawParams(uniforms) {
     return {
+        appearance: uniforms.get('appearance').value,
         thickness: uniforms.get('thickness').value,
         noisiness: uniforms.get('noisiness').value,
         scale: uniforms.get('scale').value,

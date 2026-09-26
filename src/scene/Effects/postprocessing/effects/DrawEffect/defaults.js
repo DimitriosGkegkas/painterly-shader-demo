@@ -2,6 +2,7 @@ import { Color } from 'three'
 import { assetUrl } from '../../../../../utils/assetUrl.js'
 
 const DRAW_DEFAULTS = {
+    appearance: 1,
     thickness: 0.6,
     size: [1, 1],
     noisiness: 0.002,
