@@ -16,8 +16,11 @@ export default defineConfig({
     base,
     server: server,
     resolve: {
+        dedupe: ['three', 'postprocessing'],
         alias: {
             '@': resolve(__dirname, './src'),
+            '@dimitrisgkegkas/postprocessing': resolve(__dirname, 'packages/postprocessing/src/index.ts'),
+            '@dimitrisgkegkas/fiber-material': resolve(__dirname, 'packages/fiber-material/src/index.ts'),
         },
     },
     plugins: [react(), glsl()],

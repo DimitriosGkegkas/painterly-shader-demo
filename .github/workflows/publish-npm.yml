@@ -1,0 +1,142 @@
+name: Publish npm packages
+
+on:
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            package:
+                description: Package to publish at its package.json version
+                required: true
+                type: choice
+                options:
+                    - both
+                    - postprocessing
+                    - fiber-material
+
+permissions:
+    contents: read
+    id-token: write
+
+concurrency:
+    group: npm-publish
+    cancel-in-progress: false
+
+jobs:
+    validate:
+        if: >-
+            github.event_name == 'workflow_dispatch' ||
+            startsWith(github.event.release.tag_name, 'postprocessing-v') ||
+            startsWith(github.event.release.tag_name, 'fiber-material-v')
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  package-manager-cache: false
+
+            - name: Enable Yarn
+              run: corepack enable
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile --ignore-scripts
+
+            - name: Validate packages and demo
+              run: yarn ci
+
+    postprocessing:
+        needs: validate
+        if: >-
+            (github.event_name == 'workflow_dispatch' &&
+              (inputs.package == 'both' || inputs.package == 'postprocessing')) ||
+            (github.event_name == 'release' &&
+              startsWith(github.event.release.tag_name, 'postprocessing-v'))
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Node and npm registry
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  registry-url: https://registry.npmjs.org
+                  package-manager-cache: false
+
+            - name: Enable Yarn
+              run: corepack enable
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile --ignore-scripts
+
+            - name: Validate release tag
+              if: github.event_name == 'release'
+              working-directory: packages/postprocessing
+              env:
+                  RELEASE_TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  test "$RELEASE_TAG" = "postprocessing-v$VERSION"
+
+            - name: Publish postprocessing
+              working-directory: packages/postprocessing
+              run: |
+                  NAME=$(node -p "require('./package.json').name")
+                  VERSION=$(node -p "require('./package.json').version")
+                  if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+                    echo "$NAME@$VERSION is already published; skipping."
+                    exit 0
+                  fi
+                  npm publish
+
+    fiber-material:
+        needs: validate
+        if: >-
+            (github.event_name == 'workflow_dispatch' &&
+              (inputs.package == 'both' || inputs.package == 'fiber-material')) ||
+            (github.event_name == 'release' &&
+              startsWith(github.event.release.tag_name, 'fiber-material-v'))
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Node and npm registry
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  registry-url: https://registry.npmjs.org
+                  package-manager-cache: false
+
+            - name: Enable Yarn
+              run: corepack enable
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile --ignore-scripts
+
+            - name: Validate release tag
+              if: github.event_name == 'release'
+              working-directory: packages/fiber-material
+              env:
+                  RELEASE_TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  test "$RELEASE_TAG" = "fiber-material-v$VERSION"
+
+            - name: Publish fiber material
+              working-directory: packages/fiber-material
+              run: |
+                  NAME=$(node -p "require('./package.json').name")
+                  VERSION=$(node -p "require('./package.json').version")
+                  if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+                    echo "$NAME@$VERSION is already published; skipping."
+                    exit 0
+                  fi
+                  npm publish

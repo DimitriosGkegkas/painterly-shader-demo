@@ -18,7 +18,7 @@ const fragmentShader = /* glsl */ `
     }
 `
 
-const CHANNEL_MASKS = {
+const CHANNEL_MASKS = Object.freeze({
     all: [1, 1, 1],
     red: [1, 0, 0],
     green: [0, 1, 0],
@@ -26,20 +26,25 @@ const CHANNEL_MASKS = {
     redGreen: [1, 1, 0],
     redBlue: [1, 0, 1],
     greenBlue: [0, 1, 1],
+} as const)
+
+export type ColorChannel = keyof typeof CHANNEL_MASKS
+
+export function normalizeColorChannel(channel: string): ColorChannel {
+    return Object.prototype.hasOwnProperty.call(CHANNEL_MASKS, channel) ? (channel as ColorChannel) : 'all'
 }
 
 class ColorChannelEffect extends Effect {
-    constructor() {
+    constructor(channel: ColorChannel = 'all') {
         super('ColorChannelEffect', fragmentShader, {
-            uniforms: new Map([
-                ['channelMask', new Uniform(new Vector3(1, 1, 1))],
-            ]),
+            uniforms: new Map([['channelMask', new Uniform(new Vector3(1, 1, 1))]]),
         })
+        this.setChannel(channel)
     }
 
-    setChannel(channel = 'all') {
-        const [r, g, b] = CHANNEL_MASKS[channel] ?? CHANNEL_MASKS.all
-        this.uniforms.get('channelMask').value.set(r, g, b)
+    setChannel(channel: ColorChannel = 'all'): void {
+        const [r, g, b] = CHANNEL_MASKS[normalizeColorChannel(channel)]
+        this.uniforms.get('channelMask')!.value.set(r, g, b)
     }
 }
 

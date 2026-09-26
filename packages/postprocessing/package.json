@@ -1,0 +1,55 @@
+{
+  "name": "@dimitrisgkegkas/postprocessing",
+  "version": "0.1.0",
+  "description": "Configurable ink wash effect and Three.js postprocessing composer.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "UNLICENSED",
+  "author": {
+    "name": "dimitrisgkegkas",
+    "email": "dimitrisgegas01@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DimitriosGkegkas/painterly-shader-demo.git",
+    "directory": "packages/postprocessing"
+  },
+  "homepage": "https://github.com/DimitriosGkegkas/painterly-shader-demo#readme",
+  "bugs": {
+    "url": "https://github.com/DimitriosGkegkas/painterly-shader-demo/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit --emitDeclarationOnly false",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "three": "~0.174.0",
+    "postprocessing": "~6.37.1"
+  },
+  "devDependencies": {
+    "@types/three": "0.169.0",
+    "typescript": "5.6.2",
+    "vite": "^5.4.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

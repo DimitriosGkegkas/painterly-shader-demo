@@ -6,10 +6,10 @@ import globals from 'globals'
 
 export default [
     {
-        ignores: ['dist/**', 'node_modules/**'],
+        ignores: ['dist/**', '**/dist/**', 'node_modules/**'],
     },
     {
-        files: ['src/**/*.{js,jsx,ts,tsx}'],
+        files: ['src/**/*.{js,jsx,ts,tsx}', 'packages/*/src/**/*.ts'],
         languageOptions: {
             parser: tsParser,
             parserOptions: {

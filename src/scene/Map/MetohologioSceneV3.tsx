@@ -9,7 +9,7 @@ import React, { useMemo } from 'react'
 import { useGraph } from '@react-three/fiber'
 import { useAnimations, useGLTF, useTexture } from '@react-three/drei'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
-import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
+import { CartoonBlobFiberMaterial } from '../Effects/DemoFiberMaterial'
 import { assetUrl } from '../../utils/assetUrl.js'
 
 type ActionName = 'Walk' | 'Armature.004Action' | 'Armature.004Action.001' | 'Action.004' | 'Action.005' | 'Armature.004Action.004' | 'Armature.004Action.005' | 'Armature.004|Armature.002Action.002' | 'Armature.004|Armature.004Action.002' | 'Armature.005|Armature|3030509026704_TempMotion|3030509026704_Te' | 'Armature|3030509026704_TempMotion|3030509026704_TempMotion.001' | 'Armature|3030509026704_TempMotion|3030509026704_TempMotion.004' | 'Action.006'
@@ -83,7 +83,6 @@ export default function MetohologioSceneV3(
     () =>
       new CartoonBlobFiberMaterial({
         backgroundLight: 0.2,
-        edgeNoiseStrength: 0.0,
         edgeSmoothness: 0.1,
         edgeOffset: 0.5,
         fiberScale: 2,
@@ -99,15 +98,12 @@ export default function MetohologioSceneV3(
     () =>
       new CartoonBlobFiberMaterial({
         backgroundLight: 0.15,
-        edgeNoiseStrength: 0,
         edgeSmoothness: 1.0,
         edgeOffset: 0.0,
         useStaticCamera: true,
         shadowTexture: groundShadowTexture,
         staticCameraPosition: [0, 10, 10],
         staticCameraTarget: [0, 0, 0],
-        worldZStart: 0,
-        worldZEnd: 10,
         fiberScale: 10,
         bandCount: 5,
         bandSoftness: 0.5,

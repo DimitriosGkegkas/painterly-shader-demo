@@ -1,0 +1,35 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    validate:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: yarn
+
+            - name: Enable Yarn
+              run: corepack enable
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile --ignore-scripts
+
+            - name: Validate packages and demo
+              run: yarn ci

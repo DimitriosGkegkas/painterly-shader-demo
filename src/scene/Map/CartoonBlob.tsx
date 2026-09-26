@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo } from 'react'
-import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
+import { CartoonBlobFiberMaterial } from '../Effects/DemoFiberMaterial'
 import { usePlaneMaterialControls } from './PlaneMaterialControls'
 
 export default function CartoonBlob(props: JSX.IntrinsicElements['group']) {

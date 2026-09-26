@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import * as THREE from 'three'
 import { Text } from '@react-three/drei'
-import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
+import { CartoonBlobFiberMaterial } from '../Effects/DemoFiberMaterial'
 import { usePlaneMaterialControls } from './PlaneMaterialControls'
 
 type TextureComparisonPlanesProps = JSX.IntrinsicElements['group'] & {
@@ -26,8 +26,6 @@ export default function TextureComparisonPlanes({
                 shadowTexture,
                 staticCameraPosition: [0, 0, 10],
                 staticCameraTarget: [0, 0, 0],
-                worldZStart: 0,
-                worldZEnd: 1,
                 side: THREE.DoubleSide,
             }),
         [shadowTexture]

@@ -7,7 +7,7 @@ import * as THREE from 'three'
 import React, { useMemo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
-import { CartoonBlobFiberMaterial } from '../Effects/material-shaders/CartoonBlobFiberMaterial'
+import { CartoonBlobFiberMaterial } from '../Effects/DemoFiberMaterial'
 import { usePlaneMaterialControls } from './PlaneMaterialControls'
 import { assetUrl } from '../../utils/assetUrl.js'
 
@@ -71,8 +71,6 @@ export default function MetohologioSceneV2(props: JSX.IntrinsicElements['group']
         useStaticCamera: true,
         shadowTexture,
         disableEdgeNormals: true,
-        worldZStart: 0,
-        worldZEnd: 10,
         side: THREE.DoubleSide
       })
   }, [shadowTexture])
