@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import { Color } from 'three'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { PostProcessing } from '../Effects/postprocessing/PostProcessing'
 import { Perf } from 'r3f-perf'
 import ScrollCameraController from './controllers/ScrollCameraController'
@@ -16,15 +16,47 @@ type ExperienceProps = Omit<ComponentProps<typeof Canvas>, 'children'> & {
     cameraControl: CameraControl
 }
 
+function RefreshShadows({ model }: { model: SceneModel }) {
+    const { scene } = useThree()
+    useLayoutEffect(() => {
+        // Suspense may finish after the first frame. Refresh once the actual casters mount.
+        scene.traverse((object) => {
+            if ('shadow' in object && object.shadow) {
+                (object.shadow as { needsUpdate: boolean }).needsUpdate = true
+            }
+        })
+    }, [scene, model])
+    return null
+}
+
 function Experience({ model, cameraControl, ...props }: ExperienceProps) {
+    const [displayDpr, setDisplayDpr] = useState(() =>
+        Math.min(2, Math.max(1, window.devicePixelRatio || 1))
+    )
+
+    useEffect(() => {
+        let densityQuery: MediaQueryList | undefined
+        const updateDensity = () => {
+            densityQuery?.removeEventListener('change', updateDensity)
+            const deviceDpr = window.devicePixelRatio || 1
+            setDisplayDpr(Math.min(2, Math.max(1, deviceDpr)))
+            // Re-arm even when the capped render DPR stays the same (e.g. 3 -> 2).
+            // A monitor change need not change the canvas's CSS dimensions.
+            densityQuery = window.matchMedia(`(resolution: ${deviceDpr}dppx)`)
+            densityQuery.addEventListener('change', updateDensity)
+        }
+        updateDensity()
+        return () => densityQuery?.removeEventListener('change', updateDensity)
+    }, [])
+
     return (
         <Canvas
             {...props}
             id='main-canvas'
             className='window'
             resize={{ scroll: false }}
-            dpr={[1, 2]}
-            gl={{ antialias: true }}
+            dpr={displayDpr}
+            gl={{ antialias: false }}
             shadows={true}
         >
             <color attach='background' args={[new Color(1, 0, 1)]} />
@@ -34,6 +66,7 @@ function Experience({ model, cameraControl, ...props }: ExperienceProps) {
                     {model === 'v3' && <MetohologioSceneV3 />}
                     {model === 'debug' && <DebugPlanes />}
                 </group>
+                <RefreshShadows model={model} />
             </Suspense>
             {cameraControl === 'path' && model === 'v3' ? (
                 <ScrollCameraController />
@@ -50,6 +83,8 @@ function Experience({ model, cameraControl, ...props }: ExperienceProps) {
                 intensity={10}
                 color={new Color(1.0, 1.0, 1.0)}
                 castShadow
+                shadow-autoUpdate={model === 'v3'}
+                shadow-needsUpdate={true}
                 shadow-mapSize-width={2048}
                 shadow-mapSize-height={2048}
                 shadow-camera-near={0.5}
@@ -62,9 +97,11 @@ function Experience({ model, cameraControl, ...props }: ExperienceProps) {
             />
             <directionalLight
                 position={[-8, 12, 6]}
-                intensity={10}
+                intensity={5}
                 color={new Color(1.0, 1.0, 1.0)}
                 castShadow
+                shadow-autoUpdate={model === 'v3'}
+                shadow-needsUpdate={true}
                 shadow-mapSize-width={2048}
                 shadow-mapSize-height={2048}
                 shadow-camera-near={0.5}

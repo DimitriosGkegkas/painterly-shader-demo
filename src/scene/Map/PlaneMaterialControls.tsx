@@ -4,9 +4,8 @@ import { assetUrl } from '../../utils/assetUrl'
 
 export type FiberMaterialControlsValue = {
     backgroundLight: number
-    edgeNoiseStrength: number
-    edgeStart: number
-    edgeEnd: number
+    edgeSmoothness: number
+    edgeOffset: number
     fiberScale: number
     noiseScale: number
     bandCount: number
@@ -40,9 +39,8 @@ const PlaneMaterialControlsContext =
 
 function buildFiberMaterialValue(
     backgroundLight: number,
-    edgeNoiseStrength: number,
-    edgeStart: number,
-    edgeEnd: number,
+    edgeSmoothness: number,
+    edgeOffset: number,
     fiberScale: number,
     noiseScale: number,
     bandCount: number,
@@ -51,9 +49,8 @@ function buildFiberMaterialValue(
 ): FiberMaterialControlsValue {
     return {
         backgroundLight,
-        edgeNoiseStrength,
-        edgeStart,
-        edgeEnd,
+        edgeSmoothness,
+        edgeOffset,
         fiberScale,
         noiseScale,
         bandCount,
@@ -72,9 +69,8 @@ function DebugPlaneMaterialControlsProvider({
         {
             textureImage,
             backgroundLight,
-            edgeNoiseStrength,
-            edgeStart,
-            edgeEnd,
+            edgeSmoothness,
+            edgeOffset,
             fiberScale,
             noiseScale,
             bandCount,
@@ -93,20 +89,14 @@ function DebugPlaneMaterialControlsProvider({
                 max: 0.5,
                 step: 0.005,
             },
-            edgeNoiseStrength: {
+            edgeSmoothness: {
                 value: 0,
                 min: 0,
                 max: 1,
                 step: 0.01,
             },
-            edgeStart: {
-                value: 0.28,
-                min: 0,
-                max: 1,
-                step: 0.01,
-            },
-            edgeEnd: {
-                value: 0.28,
+            edgeOffset: {
+                value: 0.72,
                 min: 0,
                 max: 1,
                 step: 0.01,
@@ -199,9 +189,8 @@ function DebugPlaneMaterialControlsProvider({
         () =>
             buildFiberMaterialValue(
                 backgroundLight,
-                edgeNoiseStrength,
-                edgeStart,
-                edgeEnd,
+                edgeSmoothness,
+                edgeOffset,
                 fiberScale,
                 noiseScale,
                 bandCount,
@@ -210,9 +199,8 @@ function DebugPlaneMaterialControlsProvider({
             ),
         [
             backgroundLight,
-            edgeNoiseStrength,
-            edgeStart,
-            edgeEnd,
+            edgeSmoothness,
+            edgeOffset,
             fiberScale,
             noiseScale,
             bandCount,
@@ -247,9 +235,8 @@ function V2PlaneMaterialControlsProvider({
         {
             shadowTextureImage,
             backgroundLight,
-            edgeNoiseStrength,
-            edgeStart,
-            edgeEnd,
+            edgeSmoothness,
+            edgeOffset,
             fiberScale,
             noiseScale,
             bandCount,
@@ -268,20 +255,14 @@ function V2PlaneMaterialControlsProvider({
                 max: 0.5,
                 step: 0.005,
             },
-            edgeNoiseStrength: {
-                value: 0,
+            edgeSmoothness: {
+                value: 0.3,
                 min: 0,
                 max: 1,
                 step: 0.01,
             },
-            edgeStart: {
-                value: 0.28,
-                min: 0,
-                max: 1,
-                step: 0.01,
-            },
-            edgeEnd: {
-                value: 0.58,
+            edgeOffset: {
+                value: 0.42,
                 min: 0,
                 max: 1,
                 step: 0.01,
@@ -383,9 +364,8 @@ function V2PlaneMaterialControlsProvider({
         () =>
             buildFiberMaterialValue(
                 backgroundLight,
-                edgeNoiseStrength,
-                edgeStart,
-                edgeEnd,
+                edgeSmoothness,
+                edgeOffset,
                 fiberScale,
                 noiseScale,
                 bandCount,
@@ -394,9 +374,8 @@ function V2PlaneMaterialControlsProvider({
             ),
         [
             backgroundLight,
-            edgeNoiseStrength,
-            edgeStart,
-            edgeEnd,
+            edgeSmoothness,
+            edgeOffset,
             fiberScale,
             noiseScale,
             bandCount,

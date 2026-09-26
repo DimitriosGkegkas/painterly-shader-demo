@@ -4,12 +4,18 @@
     "jsx": "react-jsx",
     "module": "esnext",
     "moduleResolution": "bundler",
-
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@dimitrisgkegkas/postprocessing": [
+        "packages/postprocessing/src/index.ts"
+      ],
+      "@dimitrisgkegkas/fiber-material": [
+        "packages/fiber-material/src/index.ts"
+      ]
     },
-
     "allowJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -17,7 +23,11 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client"]
+    "types": [
+      "vite/client"
+    ]
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ]
 }

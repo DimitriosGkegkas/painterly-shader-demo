@@ -26,3 +26,7 @@ dist-ssr
 # Yarn 
 yarn-error.log
 scanner/__pycache__/
+
+# Locally packed release artifacts
+artifacts/
+*.tgz
